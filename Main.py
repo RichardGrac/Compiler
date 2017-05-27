@@ -26,7 +26,7 @@ try:
     os.system("Lexico.py")
     if verifica("lexico"):
         time.sleep(0.05)
-        os.system("Sintactico.py")
+        os.system("Sintactic.py")
 
         if verifica("sintactico"):
             pass

@@ -1,3 +1,8 @@
+Syntax error, unexpected 'y' was expected: TKN_SEMICOLON on line 27
+Syntax error, unexpected '++' was expected: TKN_ASSIGN on line 29
+Syntax error, unexpected 'y' was expected: TKN_SEMICOLON on line 32
+Syntax error, unexpected 'a' was expected: TKN_RPAREN on line 35
+Syntax error, unexpected 'a' was expected: TKN_THEN on line 35
 main
    int
        x
@@ -81,7 +86,7 @@ main
                a
                3
        if
-           >
+           <
                4
                2
            :=
@@ -90,12 +95,23 @@ main
            :=
                b
                5.0
-       :=
-           y
-           +
+           :=
+               d
+               +
+                   +
+                       a
+                       b
+                   *
+                       c
+                       5
+           :=
                y
-               1
-   do
+               +
+                   y
+                   1
+       ++
+           a
+           b
        :=
            y
            +
@@ -109,39 +125,8 @@ main
            ==
                a
                b
-           :=
-               a
-               +
-                   a
-                   1
-           :=
-               b
-               +
-                   b
-                   1
-       ==
-           y
-           5
-   while
-       ==
-           y
-           0
-       cout
-           x
-       do
-           cout
-               /
-                   5
-                   2
-           if
-               !=
-                   a
-                   6
-               :=
-                   a
-                   5
-               cin
-                   x
-           >
-               x
-               10
+   :=
+       b
+       +
+           b
+           1

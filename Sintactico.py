@@ -106,6 +106,19 @@ def getToken():
         return "EOF"  # End of file
 
 
+def scanto(synchset):
+    global token
+    while (token.tipo not in synchset) | (token == "EOF"):
+        token = getToken()
+
+
+def checkinput(firstset, followset):
+    global token
+    if not token.tipo in firstset:
+        print("Syntax error at line: " + token.linea + ", unexpected " + token.lexema)
+        scanto(firstset+followset)
+
+
 def newStmtNode(kind):
     pass
     global token
@@ -437,98 +450,115 @@ def exp():
 def simple_exp():
     pass
     global token
-    t = term()
+    firstset = ["TKN_LPAREN", "TKN_NUM", "TKN_ID"]
+    synchset = ["TKN_LESS", "TKN_ELESS", "TKN_MORE", "TKN_EMORE", "TKN_EQUAL", "TKN_NEQUAL", 
+                "TKN_SEMICOLON", "TKN_RPAREN"]
+    checkinput(firstset, synchset)
+    if not token.tipo in synchset:
 
-    while (token.tipo == "TKN_ADD") | (token.tipo == "TKN_MINUS"):
-        p = newExpNode(ExpKind.OpK)
+        t = term(synchset)
 
-        if p is not None:
-            p.branch[0] = t
-            p.attr.op = token.tipo
-            t = p
+        while (token.tipo == "TKN_ADD") | (token.tipo == "TKN_MINUS"):
+            p = newExpNode(ExpKind.OpK)
 
-            match(token.tipo)
-            t.branch[1] = term()
+            if p is not None:
+                p.branch[0] = t
+                p.attr.op = token.tipo
+                t = p
+
+                match(token.tipo)
+                t.branch[1] = term(synchset)
+        checkinput(synchset, firstset)
     return t
 
 
-def term():
+def term(synchset):
     pass
     global token
+    firstset = ["TKN_LPAREN", "TKN_NUM", "TKN_ID"]
+    synchset += ["TKN_ADD", "TKN_MINUS"]
+    checkinput(firstset, synchset)
+    if not token.tipo in synchset:
 
-    t = factor()
+        t = factor(synchset)
 
-    while (token.tipo == "TKN_MULTI") | (token.tipo == "TKN_DIV"):
-        p = newExpNode(ExpKind.OpK)
+        while (token.tipo == "TKN_MULTI") | (token.tipo == "TKN_DIV"):
+            p = newExpNode(ExpKind.OpK)
 
-        if p is not None:
-            p.branch[0] = t
-            p.attr.op = token.tipo
-            t = p
-            match(token.tipo)
-            p.branch[1] = factor()
+            if p is not None:
+                p.branch[0] = t
+                p.attr.op = token.tipo
+                t = p
+                match(token.tipo)
+                p.branch[1] = factor(synchset)
+        checkinput(synchset, firstset)
     return t
 
 
-def factor():
+def factor(synchset):
     pass
     global token
+    firstset = ["TKN_LPAREN", "TKN_NUM", "TKN_ID"]
+    synchset += ["TKN_MULTI", "TKN_DIV"]
+    if not token.tipo in synchset:
 
-    if token.tipo == "TKN_NUM":
-        t = newExpNode(ExpKind.ConstK)
+        if token.tipo == "TKN_NUM":
+            t = newExpNode(ExpKind.ConstK)
 
-        if (t is None) & (token.tipo == "TKN_NUM"):
-            try:
-                valor = float(token.lexema)
-                t.attr.val = valor
-            except:
-                print("No fue posible convertir el lexema a float")
-        match("TKN_NUM")
+            if (t is None) & (token.tipo == "TKN_NUM"):
+                try:
+                    valor = float(token.lexema)
+                    t.attr.val = valor
+                except:
+                    print("No fue posible convertir el lexema a float")
+            match("TKN_NUM")
 
-    elif token.tipo == "TKN_ID":
-        t = newExpNode(ExpKind.IdK)
+        elif token.tipo == "TKN_ID":
+            t = newExpNode(ExpKind.IdK)
 
-        if (t is None) & (token.tipo == "TKN_ID"):
-            t.attr.name = token.lexema
+            if (t is None) & (token.tipo == "TKN_ID"):
+                t.attr.name = token.lexema
 
-        match("TKN_ID")
+            match("TKN_ID")
 
-    elif token.tipo == "TKN_ADD":
-        t = newExpNode("TKN_MORE")
+        elif token.tipo == "TKN_ADD":
+            t = newExpNode("TKN_MORE")
 
-        if (t is None) & (token.tipo == "TKN_ID"):
-            t.attr.name = token.lexema
+            if (t is None) & (token.tipo == "TKN_ID"):
+                t.attr.name = token.lexema
 
-        match("TKN_MORE")
-        t.branch[0] = factor()
+            match("TKN_MORE")
+            t.branch[0] = factor()
 
-    elif token.tipo == "TKN_MINUS":
-        t = newExpNode("TKN_MINUS")
+        elif token.tipo == "TKN_MINUS":
+            t = newExpNode("TKN_MINUS")
 
-        if (t is None) & (token.tipo == "TKN_ID"):
-            t.attr.name = token.lexema
+            if (t is None) & (token.tipo == "TKN_ID"):
+                t.attr.name = token.lexema
 
-        match("TKN_MINUS")
-        t.branch[0] = factor()
+            match("TKN_MINUS")
+            t.branch[0] = factor()
 
-    elif token.tipo == "TKN_NOT":
-        t = newExpNode("TKN_NOT")
+        elif token.tipo == "TKN_NOT":
+            t = newExpNode("TKN_NOT")
 
-        if (t is None) & (token.tipo == "TKN_ID"):
-            t.attr.name = token.lexema
+            if (t is None) & (token.tipo == "TKN_ID"):
+                t.attr.name = token.lexema
 
-        match("TKN_NOT")
-        t.branch[0] = factor()
+            match("TKN_NOT")
+            t.branch[0] = factor()
 
-    elif token.tipo == "TKN_LPAREN":
-        match("TKN_LPAREN")
-        t = exp()
-        match("TKN_RPAREN")
+        elif token.tipo == "TKN_LPAREN":
+            match("TKN_LPAREN")
+            t = exp()
+            match("TKN_RPAREN")
 
-    else:
-        print("Syntax error, unexpected factor '" + token.lexema + "'" + " on line " + token.linea)
-        output.write("Syntax error, unexpected factor '" + token.lexema + "'" + " on line " + token.linea + "\n")
-        token = getToken()
+        else:
+            print("Syntax error, unexpected factor '" + token.lexema + "'" + " on line " + token.linea)
+            output.write("Syntax error, unexpected factor '" + token.lexema + "'" + " on line " + token.linea + "\n")
+            token = getToken()
+
+        checkinput(synchset, firstset)
     return t
 
 
