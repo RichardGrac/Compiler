@@ -427,17 +427,14 @@ def assign_stmt(synchset):
             q.attr.name = token.lexema
         match("TKN_ID")
 
-        if token.tipo == "TKN_ASSIGN":
-            t = newStmtNode(StmtKind.AssignK)
-            if t is not None:
-                t.attr.name = token
-            match("TKN_ASSIGN")
-        else:
-            checkinput(synchset)
+        t = newStmtNode(StmtKind.AssignK)
+        if t is not None:
+            t.attr.name = token
+        match("TKN_ASSIGN")
 
         if t is not None:
             t.branch[0] = q
-            t.branch[1] = expresion(synchset + ["TKN_SEMICOLON", "TKN_RPAREN"])
+            t.branch[1] = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
 
         match("TKN_SEMICOLON")
         # checkinput(synchset, firstset)
@@ -500,6 +497,7 @@ def isLogic():
 def expresion(synchset):
     pass
     global token
+    t = TreeNode()
     firstset = ["TKN_LPAREN", "TKN_ID", "TKN_NUM"]
     synchset += []
     checkinput(firstset, synchset)
@@ -526,6 +524,7 @@ def expresion(synchset):
 def simple_exp(synchset):
     pass
     global token
+    t = TreeNode()
     firstset = ["TKN_LPAREN", "TKN_NUM", "TKN_ID"]
     synchset += ["TKN_LESS", "TKN_ELESS", "TKN_MORE", "TKN_EMORE", "TKN_EQUAL", "TKN_NEQUAL"]
     checkinput(firstset, synchset)
@@ -550,6 +549,7 @@ def simple_exp(synchset):
 def term(synchset):
     pass
     global token
+    t = TreeNode()
     firstset = ["TKN_LPAREN", "TKN_NUM", "TKN_ID"]
     synchset += ["TKN_ADD", "TKN_MINUS"]
     checkinput(firstset, synchset)
@@ -573,6 +573,7 @@ def term(synchset):
 def factor(synchset):
     pass
     global token
+    t = TreeNode()
     firstset = ["TKN_LPAREN", "TKN_NUM", "TKN_ID"]
     synchset += ["TKN_MULTI", "TKN_DIV"]
     if not token.tipo in synchset:
