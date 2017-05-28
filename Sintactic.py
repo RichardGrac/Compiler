@@ -30,7 +30,8 @@ class StmtKind(Enum):
     DoK = 7
     UntilK = 8
     WhileK = 9
-    ElseK = 10
+    ThenK = 10
+    ElseK = 11
 
 
 class ExpKind(Enum):
@@ -81,7 +82,8 @@ output = open("Tokens.txt", "r")
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
     tok = Token(linea, columna, tipo, lexema[:-1])  # Substring hasta -1 porque agregaba "\n"
-    tokens.append(tok)
+    if tok.tipo != "TKN_ERROR":
+        tokens.append(tok)
 
 
 def match(expected):
@@ -258,14 +260,14 @@ def statement(synchset):
 def block(synchset):
     pass
     global token
-    firstset = ["TKN_LBRACE"]
+    firstset = ["TKN_LBRACE", "TKN_IF", "TKN_WHILE", "TKN_DO", "TKN_CIN", "TKN_COUT", "TKN_ID"]
     synchset += ["TKN_ELSE", "TKN_UNTIL"]
     checkinput(firstset, synchset)
 
     t = TreeNode()
     if not token.tipo in synchset:
         match("TKN_LBRACE")
-        t = stmt_sequence(["TKN_RBRACE"])
+        t = stmt_sequence(synchset)
         match("TKN_RBRACE")
         # checkinput(synchset, firstset)
     return t
@@ -329,21 +331,27 @@ def if_stmt(synchset):
 
         if t is not None:
             match("TKN_LPAREN")
-            t.branch[0] = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
+            t.branch[0] = expresion(["TKN_SEMICOLON", "TKN_RPAREN", "TKN_THEN"])
             match("TKN_RPAREN")
 
-
+        if token.tipo == "TKN_THEN":
+            t.sibling.append(newStmtNode(StmtKind.ThenK))
+        else:
+            tAux = token
+            token = Token(token.linea, token.columna, "TKN_THEN", "then")
+            t.sibling.append(newStmtNode(StmtKind.ThenK))
+            token = tAux
         match("TKN_THEN")
 
         if t is not None:
-            t.branch[1] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
+            t.sibling[0].branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
 
         if token.lexema == "else":
-            # t.branch[2] = newStmtNode(StmtKind.ElseK)
+            t.sibling.append(newStmtNode(StmtKind.ElseK))
             match("TKN_ELSE")
 
             if t is not None:
-                t.branch[2] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
+                t.sibling[1].branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
 
                 # t.sibling.append(statement(synchset))
                 # checkinput(synchset, firstset)
@@ -351,6 +359,8 @@ def if_stmt(synchset):
 
 
 def while_stmt(synchset):
+    pass
+    global token
     firstset = ["TKN_WHILE"]
     synchset += []
     checkinput(firstset, synchset)
@@ -371,6 +381,8 @@ def while_stmt(synchset):
 
 
 def do_stmt(synchset):
+    pass
+    global token
     firstset = ["TKN_DO"]
     synchset += []
     checkinput(firstset, synchset)
@@ -382,11 +394,18 @@ def do_stmt(synchset):
         if t is not None:
             t.branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
 
+        if token.tipo == "TKN_UNTIL":
+            t.sibling.append(newStmtNode(StmtKind.UntilK))
+        else:
+            tAux = token
+            token = Token(token.linea, token.columna, "TKN_UNTIL", "until")
+            t.sibling.append(newStmtNode(StmtKind.UntilK))
+            token = tAux
         match("TKN_UNTIL")
 
         if t is not None:
             match("TKN_LPAREN")
-            t.branch[1] = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
+            t.sibling[0].branch[0] = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
             match("TKN_RPAREN")
 
         match("TKN_SEMICOLON")
@@ -408,14 +427,17 @@ def assign_stmt(synchset):
             q.attr.name = token.lexema
         match("TKN_ID")
 
-        t = newStmtNode(StmtKind.AssignK)
-        if t is not None:
-            t.attr.name = token
-        match("TKN_ASSIGN")
+        if token.tipo == "TKN_ASSIGN":
+            t = newStmtNode(StmtKind.AssignK)
+            if t is not None:
+                t.attr.name = token
+            match("TKN_ASSIGN")
+        else:
+            checkinput(synchset)
 
         if t is not None:
             t.branch[0] = q
-            t.branch[1] = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
+            t.branch[1] = expresion(synchset + ["TKN_SEMICOLON", "TKN_RPAREN"])
 
         match("TKN_SEMICOLON")
         # checkinput(synchset, firstset)
