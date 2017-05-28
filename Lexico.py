@@ -72,7 +72,7 @@ pReservadas = {
     "if": "TKN_IF",
     "then": "TKN_THEN",
     "else": "TKN_ELSE",
-    "end": "TKN_END",
+    # "end": "TKN_END",
     "do": "TKN_DO",
     "while": "TKN_WHILE",
     "repeat": "TKN_REPEAT",
@@ -124,11 +124,11 @@ while contador < len(linea):
         elif caracter == '/':
             estado = STATE.DIFFERENCE
         elif caracter == '+':
-            appendWithOne("TKN_ADD")
-            # estado = STATE.ADDITION
+            # appendWithOne("TKN_ADD")
+            estado = STATE.ADDITION
         elif caracter == '-':
-            # estado = STATE.SUBSTRACTION
-            appendWithOne("TKN_MINUS")
+            estado = STATE.SUBSTRACTION
+            # appendWithOne("TKN_MINUS")
         elif caracter == '<':
             estado = STATE.IN_LESS
         elif caracter == '>':
@@ -198,22 +198,22 @@ while contador < len(linea):
             estado = STATE.IN_MULTIPLE_COMMENT_END
         else:
             estado = STATE.IN_MULTIPLE_COMMENT
-    # elif estado == STATE.ADDITION:
-        # if caracter == '+':
-        #     appendWithOne("TKN_PPLUS")
+    elif estado == STATE.ADDITION:
+        if caracter == '+':
+            appendWithOne("TKN_PPLUS")
         # elif (caracter >= '0') & (caracter <= '9'):  # Para numeros con signo +3
         #     estado = STATE.IN_NUMERAL
         #     decreasing()
-        # else:
-        #     append("TKN_ADD")
-    # elif estado == STATE.SUBSTRACTION:
-    #     if caracter == '-':
-    #         appendWithOne("TKN_LLESS")
+        else:
+            append("TKN_ADD")
+    elif estado == STATE.SUBSTRACTION:
+        if caracter == '-':
+            appendWithOne("TKN_LLESS")
     #     # elif (caracter >= '0') & (caracter <= '9'):  # Para numeros con signo -3
     #     #     estado = STATE.IN_NUMERAL
     #     #     decreasing()
-    #     else:
-    #         append("TKN_MINUS")
+        else:
+            append("TKN_MINUS")
     elif estado == STATE.IN_LESS:
         if caracter == '=':
             appendWithOne("TKN_ELESS")

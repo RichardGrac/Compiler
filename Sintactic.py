@@ -27,7 +27,7 @@ class StmtKind(Enum):
     CinK = 4
     DeclK = 5
     AssignK = 6
-    DoK = 7
+    RepeatK = 7
     UntilK = 8
     WhileK = 9
     ThenK = 10
@@ -113,7 +113,7 @@ def getToken():
 def scanto(synchset):
     global token
     while True:
-        if token.tipo == "EOF":
+        if token.tipo == "TKN_EOF":
             break
         elif not token.tipo in synchset:
             token = getToken()
@@ -181,6 +181,7 @@ def main():
             try:
                 match("TKN_RBRACE")
             except:
+                print("Syntax error, was expected '}' at end of code.")
                 pass
     return t
 
@@ -189,16 +190,9 @@ def stmt_sequence(synchset):
     pass
     global token
     t = TreeNode()
-    # firstset = ["TKN_IF", "TKN_WHILE", "TKN_DO", "TKN_CIN", "TKN_COUT", "TKN_RBRACE", "TKN_ID", "TKN_INT", "TKN_REAL",
-    #             "TKN_BOOLEAN"]
-    # synchset = ["TKN_RBRACE"]
-    # checkinput(firstset, synchset)
-    #
-    # while True:
-    #     if not token.tipo in synchset:
     t = statement(synchset)
     p = t
-    #
+
     while (token.tipo != "TKN_RBRACE") & (token.tipo != "TKN_EOF"):
         q = statement(synchset)
 
@@ -209,12 +203,6 @@ def stmt_sequence(synchset):
             else:
                 p.sibling.append(q)
                 p = q
-    # # checkinput(synchset, firstset)
-    #         if token == "EOF":
-    #             break
-    #     else:
-    #         break
-
     return t
 
 
@@ -222,7 +210,7 @@ def statement(synchset):
     pass
     global token
     t = TreeNode()
-    firstset = ["TKN_IF", "TKN_WHILE", "TKN_DO", "TKN_CIN", "TKN_COUT", "TKN_LBRACE", "TKN_ID", "TKN_INT", "TKN_REAL",
+    firstset = ["TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_LBRACE", "TKN_ID", "TKN_INT", "TKN_REAL",
                 "TKN_BOOLEAN"]
     synchset += []
     checkinput(firstset, synchset)
@@ -230,7 +218,8 @@ def statement(synchset):
     if not token.tipo in synchset:
         t = TreeNode()
         if token.tipo == "TKN_ID":
-            t = assign_stmt(synchset)
+            t = assign_stmt(synchset+["TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_LBRACE",
+                                      "TKN_INT", "TKN_REAL", "TKN_BOOLEAN"])
 
         elif token.tipo == "TKN_IF":
             t = if_stmt(synchset)
@@ -250,8 +239,8 @@ def statement(synchset):
         elif token.tipo == "TKN_WHILE":
             t = while_stmt(synchset)
 
-        elif token.tipo == "TKN_DO":
-            t = do_stmt(synchset)
+        elif token.tipo == "TKN_REPEAT":
+            t = repeat_stmt(synchset)
 
             # checkinput(synchset, firstset)
     return t
@@ -260,7 +249,7 @@ def statement(synchset):
 def block(synchset):
     pass
     global token
-    firstset = ["TKN_LBRACE", "TKN_IF", "TKN_WHILE", "TKN_DO", "TKN_CIN", "TKN_COUT", "TKN_ID"]
+    firstset = ["TKN_LBRACE", "TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_ID"]
     synchset += ["TKN_ELSE", "TKN_UNTIL"]
     checkinput(firstset, synchset)
 
@@ -380,16 +369,16 @@ def while_stmt(synchset):
     return t
 
 
-def do_stmt(synchset):
+def repeat_stmt(synchset):
     pass
     global token
-    firstset = ["TKN_DO"]
+    firstset = ["TKN_REPEAT"]
     synchset += []
     checkinput(firstset, synchset)
 
     if not token.tipo in synchset:
-        t = newStmtNode(StmtKind.DoK)
-        match("TKN_DO")
+        t = newStmtNode(StmtKind.RepeatK)
+        match("TKN_REPEAT")
 
         if t is not None:
             t.branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
@@ -415,7 +404,8 @@ def do_stmt(synchset):
 
 def assign_stmt(synchset):
     pass
-    global token
+    global token, tokens, contador
+    t = TreeNode()
     firstset = ["TKN_ID"]
     synchset += []
     checkinput(firstset, synchset)
@@ -427,14 +417,58 @@ def assign_stmt(synchset):
             q.attr.name = token.lexema
         match("TKN_ID")
 
-        t = newStmtNode(StmtKind.AssignK)
-        if t is not None:
-            t.attr.name = token
-        match("TKN_ASSIGN")
+        # Caso especial de que sea ++ o -- Haremos lo sig: --> id := id + 1
+        if (token.tipo == "TKN_PPLUS") | (token.tipo == "TKN_LLESS"):
+            lex = token.lexema[0]    # + o -
+            if lex == "+":
+                tipo = "TKN_ADD"
+            else:
+                tipo = "TKN_MINUS"
 
-        if t is not None:
-            t.branch[0] = q
-            t.branch[1] = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
+            # Creamos tokens Artificiales y añadimos a tokens[]
+            tokenA = tokens[contador-2]  # id
+            tokenB = Token(token.linea, token.columna, tipo, lex)  # - o +
+            tokenC = Token(token.linea, token.columna, "TKN_NUM", "1")  # 1
+
+            # Establecemos nodo de asignación :=
+            token = Token(token.linea, token.columna, "TKN_ASSIGN", ":=")
+            tokens[contador-1] = token  # Actualizamos array, cambiando el PPLUS por ":="
+            t = newStmtNode(StmtKind.AssignK)
+            match("TKN_ASSIGN")
+
+            if t is not None:
+                t.attr.name = token
+
+            # Añado a tokens[]:
+            tokens.insert(contador-1, tokenA)
+            tokens.insert(contador, tokenB)
+            tokens.insert(contador+1, tokenC)
+            token = tokens[contador-1]
+            # contador -= 1
+
+            if t is not None:
+                t.branch[0] = q
+                t.branch[1] = expresion(synchset + ["TKN_SEMICOLON", "TKN_RPAREN"])
+
+        # Si no, es una asignación
+        else:
+            if token.tipo == "TKN_ASSIGN":
+                t = newStmtNode(StmtKind.AssignK)
+            else:
+                tAux = token
+                token = Token(token.linea, token.columna, "TKN_ASSIGN", ":=")
+                t = newStmtNode(StmtKind.AssignK)
+                token = tAux
+            match("TKN_ASSIGN")
+
+            # t = newStmtNode(StmtKind.AssignK)
+            if t is not None:
+                t.attr.name = token
+            # match("TKN_ASSIGN")
+
+            if t is not None:
+                t.branch[0] = q
+                t.branch[1] = expresion(synchset + ["TKN_SEMICOLON", "TKN_RPAREN"])
 
         match("TKN_SEMICOLON")
         # checkinput(synchset, firstset)
@@ -541,6 +575,10 @@ def simple_exp(synchset):
                 t = p
 
                 match(token.tipo)
+                # En caso de que haya dos operadores seguidos:
+                while (token.tipo == "TKN_ADD") | (token.tipo == "TKN_MINUS"):
+                    print("Syntax error, multiple operator detected at line: " + token.linea)
+                    token = getToken()
                 t.branch[1] = term(synchset)
         checkinput(synchset, firstset)
     return t
@@ -565,6 +603,9 @@ def term(synchset):
                 p.attr.op = token.tipo
                 t = p
                 match(token.tipo)
+                while (token.tipo == "TKN_MULTI") | (token.tipo == "TKN_DIV"):
+                    print("Syntax error, multiple operator detected at line: " + token.linea)
+                    token = getToken()
                 p.branch[1] = factor(synchset)
         checkinput(synchset, firstset)
     return t

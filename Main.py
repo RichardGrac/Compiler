@@ -24,12 +24,11 @@ def verifica(tipo):
 
 try:
     os.system("Lexico.py")
-    if verifica("lexico"):
-        time.sleep(0.05)
-        os.system("Sintactic.py")
-
-        if verifica("sintactico"):
-            pass
+    # verifica("lexico")
+    time.sleep(0.09)
+    os.system("Sintactic.py")
+    # verifica("sintactico")
+    pass
 
 except:
     print("Problema al intentar ejecutar algun archivo")

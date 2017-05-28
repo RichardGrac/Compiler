@@ -1,22 +1,14 @@
 Syntax error, unexpected '2' was expected: TKN_RPAREN on line 16
 Syntax error, unexpected '2' was expected: TKN_THEN on line 16
-Syntax error, unexpected 'y' was expected: TKN_SEMICOLON on line 22
-Syntax error, unexpected '+' was expected: TKN_ASSIGN on line 24
-Syntax error, unexpected '(' was expected: TKN_SEMICOLON on line 28
-Syntax error, unexpected '+' was expected: TKN_ASSIGN on line 28
-Syntax error, unexpected ')' was expected: TKN_SEMICOLON on line 28
+Syntax error, unexpected '}' was expected: TKN_SEMICOLON on line 21
+Syntax error, unexpected 'b' was expected: TKN_SEMICOLON on line 25
+Syntax error, unexpected 'repeat' was expected: TKN_SEMICOLON on line 27
 Syntax error, unexpected 'then' was expected: TKN_RPAREN on line 29
-Syntax error, unexpected 'b' was expected: TKN_SEMICOLON on line 32
-Syntax error, unexpected '==' was expected: TKN_ASSIGN on line 34
-Syntax error, unexpected ')' was expected: TKN_SEMICOLON on line 34
+Syntax error, unexpected '}' was expected: TKN_SEMICOLON on line 31
 Syntax error, unexpected 'y' was expected: TKN_LPAREN on line 36
 Syntax error, unexpected 'x' was expected: TKN_ASSIGN on line 37
-Syntax error, unexpected 'writer' was expected: TKN_LBRACE on line 39
 Syntax error, unexpected 'mas' was expected: TKN_ASSIGN on line 39
 Syntax error, unexpected 'x' was expected: TKN_ASSIGN on line 42
-Syntax error, unexpected ';' was expected: TKN_UNTIL on line 44
-Syntax error, unexpected ';' was expected: TKN_LPAREN on line 44
-Syntax error, unexpected ';' was expected: TKN_RPAREN on line 44
 main
    int
        x
@@ -120,20 +112,31 @@ main
                    *
                        c
                        5
-           :=
+       :=
+           y
+           +
                y
-               +
-                   y
-                   1
+               1
+   :=
+       a
        +
            a
-           -
-               -
-                   b
-               y
-       +
-           y
            1
+   :=
+       b
+       -
+           b
+           1
+   repeat
+       :=
+           y
+           +
+               *
+                   +
+                       y
+                       1
+                   2
+               1
        if
            ==
                a
@@ -144,39 +147,38 @@ main
                +
                    a
                    1
+       else
            :=
                b
                +
                    b
                    1
-   ==
-       y
-       5
+   until
+       ==
+           y
+           5
    while
        ==
            y
            0
-       x
+       :=
            write
            x
-       do
-           mas
-               writer
-               +
-                   mas
-                   /
-                       *
-                           5
-                       2
-           if
-               !=
-                   6
-                   a
-           then
-               :=
-                   a
+       :=
+           writer
+           +
+               mas
+               *
                    5
+                   2
+       if
+           !=
+               6
+               a
+       then
+           :=
+               a
+               5
+           :=
+               read
                x
-                   read
-                   x
-       until
