@@ -42,7 +42,7 @@ repeat{
 
 while y==0){
   write x;
-  do
+  
     writer mas+5*/2;
      if(6!=a
 

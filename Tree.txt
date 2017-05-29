@@ -8,7 +8,6 @@ Syntax error, unexpected '}' was expected: TKN_SEMICOLON before column 3 at line
 Syntax error, unexpected 'b' was expected: TKN_ASSIGN before column 8 at line 39
 Syntax error, unexpected 'y' was expected: TKN_LPAREN before column 7 at line 43
 Syntax error, unexpected 'x' was expected: TKN_ASSIGN before column 9 at line 44
-Syntax error, unexpected 'do' before column 3 at line 45
 Syntax error, unexpected 'mas' was expected: TKN_ASSIGN before column 12 at line 46
 Syntax error, unexpected '5' was expected: TKN_ASSIGN before column 11 at line 52
 Syntax error, unexpected 'x' was expected: TKN_ASSIGN before column 14 at line 53

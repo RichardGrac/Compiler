@@ -73,7 +73,7 @@ pReservadas = {
     "then": "TKN_THEN",
     "else": "TKN_ELSE",
     # "end": "TKN_END",
-    "do": "TKN_DO",
+    # "do": "TKN_DO",
     "while": "TKN_WHILE",
     "repeat": "TKN_REPEAT",
     "until": "TKN_UNTIL",
