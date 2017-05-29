@@ -93,9 +93,9 @@ def match(expected):
         token = getToken()
     else:
         print("Syntax error, unexpected '" + token.lexema + "' was expected: " + expected +
-              " on line " + token.linea)
+              " before column " + token.columna + " at line " + token.linea)
         output.write("Syntax error, unexpected '" + token.lexema + "' was expected: " + expected +
-                     " on line " + token.linea + "\n")
+                     " before column " + token.columna + " at line " + token.linea + "\n")
 
 
 def getToken():
@@ -106,7 +106,10 @@ def getToken():
         contador += 1
         return tok
     else:
-        tok = Token(0, 0, "TKN_EOF", "EOF")
+        tok = tokens[contador - 1]
+        linea = tok.linea
+        columna = int(tok.columna) + 1
+        tok = Token(linea, str(columna), "TKN_EOF", "EOF")
         return tok  # End of file
 
 
@@ -125,7 +128,10 @@ def scanto(synchset):
 def checkinput(firstset, followset):
     global token
     if not token.tipo in firstset:
-        print("Syntax error at line: " + token.linea + ", unexpected " + token.lexema)
+        print("Syntax error, unexpected '" + token.lexema + "' before column " + token.columna + " at line "
+              + token.linea)
+        output.write("Syntax error, unexpected '" + token.lexema + "' before column " + token.columna + " at line "
+                     + token.linea + "\n")
         scanto(firstset + followset)
     return
 
@@ -161,7 +167,7 @@ def newExpNode(ExpKind):
 # --------------- Declaración de funciones ---------------------
 def main():
     pass
-    global token
+    global token, tokens
     t = TreeNode()
 
     if token.tipo == "TKN_EOF":
@@ -181,8 +187,13 @@ def main():
             try:
                 match("TKN_RBRACE")
             except:
-                print("Syntax error, was expected '}' at end of code.")
+                # tokAux = tokens[contador-1]
+                # longitud = (float(tokAux.columna) + len(tokAux.lexema))-1
+                # print("Syntax error, was expected '}' after column " + longitud + " at line " + tokAux.linea)
+                # output.write("Syntax error, was expected '}' after column " + tokAux.columna + " at line " +
+                #              tokAux.linea + "\n")
                 pass
+
     return t
 
 
@@ -210,7 +221,8 @@ def statement(synchset):
     pass
     global token
     t = TreeNode()
-    firstset = ["TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_LBRACE", "TKN_ID", "TKN_INT", "TKN_REAL",
+    firstset = ["TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_LBRACE", "TKN_ID", "TKN_INT",
+                "TKN_REAL",
                 "TKN_BOOLEAN"]
     synchset += []
     checkinput(firstset, synchset)
@@ -218,8 +230,8 @@ def statement(synchset):
     if not token.tipo in synchset:
         t = TreeNode()
         if token.tipo == "TKN_ID":
-            t = assign_stmt(synchset+["TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_LBRACE",
-                                      "TKN_INT", "TKN_REAL", "TKN_BOOLEAN"])
+            t = assign_stmt(synchset + ["TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_LBRACE",
+                                        "TKN_INT", "TKN_REAL", "TKN_BOOLEAN"])
 
         elif token.tipo == "TKN_IF":
             t = if_stmt(synchset)
@@ -419,20 +431,20 @@ def assign_stmt(synchset):
 
         # Caso especial de que sea ++ o -- Haremos lo sig: --> id := id + 1
         if (token.tipo == "TKN_PPLUS") | (token.tipo == "TKN_LLESS"):
-            lex = token.lexema[0]    # + o -
+            lex = token.lexema[0]  # + o -
             if lex == "+":
                 tipo = "TKN_ADD"
             else:
                 tipo = "TKN_MINUS"
 
             # Creamos tokens Artificiales y añadimos a tokens[]
-            tokenA = tokens[contador-2]  # id
+            tokenA = tokens[contador - 2]  # id
             tokenB = Token(token.linea, token.columna, tipo, lex)  # - o +
             tokenC = Token(token.linea, token.columna, "TKN_NUM", "1")  # 1
 
             # Establecemos nodo de asignación :=
             token = Token(token.linea, token.columna, "TKN_ASSIGN", ":=")
-            tokens[contador-1] = token  # Actualizamos array, cambiando el PPLUS por ":="
+            tokens[contador - 1] = token  # Actualizamos array, cambiando el PPLUS por ":="
             t = newStmtNode(StmtKind.AssignK)
             match("TKN_ASSIGN")
 
@@ -440,10 +452,10 @@ def assign_stmt(synchset):
                 t.attr.name = token
 
             # Añado a tokens[]:
-            tokens.insert(contador-1, tokenA)
+            tokens.insert(contador - 1, tokenA)
             tokens.insert(contador, tokenB)
-            tokens.insert(contador+1, tokenC)
-            token = tokens[contador-1]
+            tokens.insert(contador + 1, tokenC)
+            token = tokens[contador - 1]
             # contador -= 1
 
             if t is not None:
@@ -577,7 +589,10 @@ def simple_exp(synchset):
                 match(token.tipo)
                 # En caso de que haya dos operadores seguidos:
                 while (token.tipo == "TKN_ADD") | (token.tipo == "TKN_MINUS"):
-                    print("Syntax error, multiple operator detected at line: " + token.linea)
+                    print("Syntax error, multiple operator detected at column " + token.columna + " at line " +
+                          token.linea)
+                    output.write("Syntax error, multiple operator detected at column " + token.columna +
+                                 " at line " + token.linea + "\n")
                     token = getToken()
                 t.branch[1] = term(synchset)
         checkinput(synchset, firstset)
@@ -604,7 +619,10 @@ def term(synchset):
                 t = p
                 match(token.tipo)
                 while (token.tipo == "TKN_MULTI") | (token.tipo == "TKN_DIV"):
-                    print("Syntax error, multiple operator detected at line: " + token.linea)
+                    print("Syntax error, multiple operator detected at column " + token.columna + " at line " +
+                          token.linea)
+                    output.write("Syntax error, multiple operator detected at column " + token.columna +
+                                 " at line " + token.linea + "\n")
                     token = getToken()
                 p.branch[1] = factor(synchset)
         checkinput(synchset, firstset)
@@ -639,13 +657,7 @@ def factor(synchset):
             match("TKN_LPAREN")
             t = expresion(["TKN_SEMICOLON", "TKN_RPAREN"])
             match("TKN_RPAREN")
-
-        # else:
-        #     print("Syntax error, unexpected factor '" + token.lexema + "'" + " on line " + token.linea)
-        #     output.write("Syntax error, unexpected factor '" + token.lexema + "'" + " on line " + token.linea + "\n")
-        #     token = getToken()
-
-        # checkinput(synchset, firstset)
+            # checkinput(synchset, firstset)
     return t
 
 
@@ -708,10 +720,55 @@ def printSibling(root, tabulacion):
         pass
 
 
+# Quitamos errores que se repitan de una misma linea
+def cleanErrorFile():
+    errores = []
+    noErrores = []
+    # Separamos errores del árbol
+    try:
+        output = open("Tree.txt", "r")
+        for line in output:
+            if "Syntax error" in line:
+                errores.append(line[:-1])
+            else:
+                noErrores.append(line[:-1])
+        output.close()
+    except:
+        print("Problema en txt - cleanErrorFile()")
+        pass
+
+    # Quitamos errores duplicados
+    errores2 = []
+    try:
+        atLine = "asdasdasxx"
+        for error in errores:
+            if not atLine in error[-7:]:
+                errores2.append(error)
+                atLine = error[-7:]
+            if "EOF" in error:
+                errores2.append(error)
+    except:
+        print("Problema en txt - cleanErrorFile()")
+        pass
+
+    # Juntamos los errores con el árbol
+    try:
+        output = open("Tree.txt", "w+")
+        for error in errores2:
+            output.write(error+"\n")
+        for valido in noErrores:
+            output.write(valido+"\n")
+        output.close()
+    except:
+        print("Problema al escribir txt - cleanErrorFile()")
+
+
+
 # Iniciamos programa:
 try:
     output = open("Tree.txt", "w+")
     main1()
     output.close()
+    cleanErrorFile()
 except:
     pass

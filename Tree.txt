@@ -1,14 +1,19 @@
-Syntax error, unexpected '2' was expected: TKN_RPAREN on line 16
-Syntax error, unexpected '2' was expected: TKN_THEN on line 16
-Syntax error, unexpected '}' was expected: TKN_SEMICOLON on line 21
-Syntax error, unexpected 'b' was expected: TKN_SEMICOLON on line 25
-Syntax error, unexpected 'repeat' was expected: TKN_SEMICOLON on line 27
-Syntax error, unexpected 'then' was expected: TKN_RPAREN on line 29
-Syntax error, unexpected '}' was expected: TKN_SEMICOLON on line 31
-Syntax error, unexpected 'y' was expected: TKN_LPAREN on line 36
-Syntax error, unexpected 'x' was expected: TKN_ASSIGN on line 37
-Syntax error, unexpected 'mas' was expected: TKN_ASSIGN on line 39
-Syntax error, unexpected 'x' was expected: TKN_ASSIGN on line 42
+Syntax error, unexpected '23' was expected: TKN_ASSIGN before column 3 at line 5
+Syntax error, unexpected '2' before column 11 at line 18
+Syntax error, unexpected '}' was expected: TKN_SEMICOLON before column 8 at line 26
+Syntax error, unexpected 'b' before column 1 at line 30
+Syntax error, unexpected 'repeat' was expected: TKN_SEMICOLON before column 1 at line 31
+Syntax error, unexpected 'then' was expected: TKN_RPAREN before column 11 at line 33
+Syntax error, unexpected '}' was expected: TKN_SEMICOLON before column 3 at line 36
+Syntax error, unexpected 'b' was expected: TKN_ASSIGN before column 8 at line 39
+Syntax error, unexpected 'y' was expected: TKN_LPAREN before column 7 at line 43
+Syntax error, unexpected 'x' was expected: TKN_ASSIGN before column 9 at line 44
+Syntax error, unexpected 'do' before column 3 at line 45
+Syntax error, unexpected 'mas' was expected: TKN_ASSIGN before column 12 at line 46
+Syntax error, unexpected '5' was expected: TKN_ASSIGN before column 11 at line 52
+Syntax error, unexpected 'x' was expected: TKN_ASSIGN before column 14 at line 53
+Syntax error, unexpected ';' before column 2 at line 56
+Syntax error, unexpected 'EOF' was expected: TKN_RBRACE before column 3 at line 56
 main
    int
        x
