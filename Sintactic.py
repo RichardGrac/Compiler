@@ -762,8 +762,6 @@ def cleanErrorFile():
     except:
         print("Problema al escribir txt - cleanErrorFile()")
 
-
-
 # Iniciamos programa:
 try:
     output = open("Tree.txt", "w+")
