@@ -1,4 +1,5 @@
 from enum import Enum
+import sys
 
 
 class Token:
@@ -77,8 +78,10 @@ class TreeNode:
 tokens = []  # Todos los tokens salidos del Léxico
 token = None  # Token actual
 contador = 0  # Para recorrer los tokens
-
+# filepath = sys.argv[1]
+# output = open(filepath, "r")
 output = open("Tokens.txt", "r")
+
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
     tok = Token(linea, columna, tipo, lexema[:-1])  # Substring hasta -1 porque agregaba "\n"
@@ -262,7 +265,7 @@ def block(synchset):
     pass
     global token
     firstset = ["TKN_LBRACE", "TKN_IF", "TKN_WHILE", "TKN_REPEAT", "TKN_CIN", "TKN_COUT", "TKN_ID"]
-    synchset += ["TKN_ELSE", "TKN_UNTIL"]
+    synchset += []
     checkinput(firstset, synchset)
 
     t = TreeNode()
@@ -345,14 +348,14 @@ def if_stmt(synchset):
         match("TKN_THEN")
 
         if t is not None:
-            t.sibling[0].branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
+            t.sibling[0].branch[0] = block(["TKN_ELSE", "TKN_RBRACE"])
 
         if token.lexema == "else":
             t.sibling.append(newStmtNode(StmtKind.ElseK))
             match("TKN_ELSE")
 
             if t is not None:
-                t.sibling[1].branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
+                t.sibling[1].branch[0] = block(["TKN_RBRACE"])
 
                 # t.sibling.append(statement(synchset))
                 # checkinput(synchset, firstset)
@@ -376,7 +379,7 @@ def while_stmt(synchset):
             match("TKN_RPAREN")
 
         if t is not None:
-            t.branch[1] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
+            t.branch[1] = block(["TKN_RBRACE"])
             # checkinput(synchset, firstset)
     return t
 
@@ -393,7 +396,7 @@ def repeat_stmt(synchset):
         match("TKN_REPEAT")
 
         if t is not None:
-            t.branch[0] = block(["TKN_ELSE", "TKN_UNTIL", "TKN_RBRACE"])
+            t.branch[0] = block(["TKN_UNTIL", "TKN_RBRACE"])
 
         if token.tipo == "TKN_UNTIL":
             t.sibling.append(newStmtNode(StmtKind.UntilK))
