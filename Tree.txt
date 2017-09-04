@@ -1,17 +1,18 @@
-Syntax error, unexpected '{' was expected: TKN_ASSIGN before column 5 at line 22
-Syntax error, unexpected 'until' before column 4 at line 30
-Syntax error, unexpected '{' was expected: TKN_ASSIGN before column 7 at line 34
-Syntax error, unexpected 'until' before column 10 at line 40
-Syntax error, unexpected ':=' was expected: TKN_SEMICOLON before column 5 at line 42
-Syntax error, unexpected 'EOF' was expected: TKN_ASSIGN before column 9 at line 42
-Syntax error, unexpected 'EOF' before column 9 at line 42
-Syntax error, unexpected 'EOF' before column 9 at line 42
-Syntax error, unexpected 'EOF' before column 9 at line 42
-Syntax error, unexpected 'EOF' before column 9 at line 42
-Syntax error, unexpected 'EOF' before column 9 at line 42
-Syntax error, unexpected 'EOF' before column 9 at line 42
-Syntax error, unexpected 'EOF' was expected: TKN_SEMICOLON before column 9 at line 42
-Syntax error, unexpected 'EOF' was expected: TKN_RBRACE before column 9 at line 42
+Syntax error, unexpected '23' was expected: TKN_ASSIGN before column 3 at line 5
+Syntax error, unexpected '2' before column 11 at line 18
+Syntax error, unexpected '}' was expected: TKN_SEMICOLON before column 8 at line 26
+Syntax error, unexpected 'b' before column 1 at line 30
+Syntax error, unexpected 'repeat' was expected: TKN_SEMICOLON before column 1 at line 31
+Syntax error, unexpected 'then' was expected: TKN_RPAREN before column 11 at line 33
+Syntax error, unexpected '}' was expected: TKN_SEMICOLON before column 3 at line 36
+Syntax error, unexpected 'b' was expected: TKN_ASSIGN before column 8 at line 39
+Syntax error, unexpected 'y' was expected: TKN_LPAREN before column 7 at line 43
+Syntax error, unexpected 'x' was expected: TKN_ASSIGN before column 9 at line 44
+Syntax error, unexpected 'writer' was expected: TKN_ASSIGN before column 5 at line 46
+Syntax error, unexpected '5' was expected: TKN_ASSIGN before column 11 at line 52
+Syntax error, unexpected 'x' was expected: TKN_ASSIGN before column 14 at line 53
+Syntax error, unexpected ';' before column 2 at line 56
+Syntax error, unexpected 'EOF' was expected: TKN_RBRACE before column 3 at line 56
 main
    int
        x
@@ -95,78 +96,94 @@ main
            +
                a
                3
+   else
        if
-           >
-               4
-               2
+           4
        then
            :=
                b
                3.2
+       else
            :=
                b
                5.0
+           :=
+               d
+               +
+                   +
+                       a
+                       b
+                   *
+                       c
+                       5
        :=
            y
            +
                y
                1
    :=
-       do
-   :=
-       y
+       a
        +
-           *
-               +
-                   y
-                   1
-               2
+           a
            1
-   if
-       <
-           a
-           b
-   then
-       :=
-           a
-           +
-               a
-               1
-   else
-       :=
-           b
-           +
-               b
-               1
    :=
-       y
-       5
+       b
+       -
+           b
+           1
+   repeat
+       :=
+           y
+           +
+               *
+                   +
+                       y
+                       1
+                   2
+               1
+       if
+           ==
+               a
+               b
+       then
+           :=
+               a
+               +
+                   a
+                   1
+       else
+           :=
+               b
+               +
+                   b
+                   1
+   until
+       ==
+           y
+           5
    while
-       !=
+       ==
            y
            0
-       cout
+       :=
+           write
            x
        :=
            do
-       cout
-           /
+           writer
+       :=
+           mas
+           *
                5
                2
        if
            !=
-               a
                6
+               a
        then
            :=
                a
                5
-           cin
+           :=
+               read
                x
-       :=
-           x
-           10
-   int
-       :=
-   :=
-       a

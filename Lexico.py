@@ -59,10 +59,13 @@ def decreasing():
 
 
 # ----------------------------------- INICIO DE ANALISIS LEXICO ------------------------------
-# fileLocation = sys.argv[1]
-# print(fileLocation)
-archivo = open("Input.txt")
-# archivo = open(fileLocation)
+# Para leer desde txt:
+# archivo = open("Input.txt")
+
+# Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
+fileLocation = sys.argv[1]
+archivo = open(fileLocation)
+
 linea = archivo.read()
 linea += "\n"
 archivo.close()
