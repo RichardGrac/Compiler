@@ -49,8 +49,8 @@ class ExpType:
 
 
 class Kind(Enum):
-    stmt = None  # StmtKind
-    exp = None  # ExpKind
+    stmt = StmtKind  # StmtKind = Objeto que contiene el tipo de Statement
+    exp = ExpKind  # ExpKind = Objecto que contiene el tipo de Expresión
 
 
 class Attr:
@@ -80,11 +80,11 @@ token = None  # Token actual
 contador = 0  # Para recorrer los tokens
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-filepath = sys.argv[1]
-output = open(filepath, "r")
+# filepath = sys.argv[1]
+# output = open(filepath, "r")
 
 # Para leer desde txt:
-# output = open("Tokens.txt", "r")
+output = open("Tokens.txt", "r")
 
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
@@ -149,10 +149,11 @@ def newStmtNode(kind):
     t = TreeNode()
     t.token = token
 
+    # No recuerdo porqué 3 veces, pero atribuimos el tipo de nodo > Statement y el subtipo > IfK, CoutK, DeclK...
     i = 0
     while i < 3:
         t.nodeKind = NodeKind.StmtK
-        t.kind = Kind.stmt
+        t.kind = kind
         i += 1
     return t
 
@@ -163,10 +164,11 @@ def newExpNode(ExpKind):
     t = TreeNode()
     t.token = token
 
+    # Lo mismo que en newStmtNode
     i = 0
     while i < 3:
         t.nodeKind = NodeKind.ExpK
-        t.kind = Kind.exp
+        t.kind = ExpKind
         i += 1
     return t
 
@@ -290,6 +292,7 @@ def declaration_stmt(synchset):
 
     if not token.tipo in synchset:
         t = newStmtNode(StmtKind.DeclK)
+        tipo = token.tipo
         match(token.tipo)
 
         w = newStmtNode(StmtKind.AssignK)
@@ -309,10 +312,13 @@ def declaration_stmt(synchset):
                 except:
                     e = None
                 i += 1
-
-            q.attr.name = token.lexema
-            q.attr.tipe = token.lexema
-            if flag:
+            # Si solo es un TKN_ID, atribuimos a q. Si son más, atribuimos a p y lo enlazamos con q
+            if not flag:
+                q.attr.name = token.lexema
+                q.attr.tipe = tipo
+            else:
+                p.attr.name = token.lexema
+                p.attr.tipe = tipo
                 q.sibling.append(p)
 
             match("TKN_ID")
@@ -680,6 +686,7 @@ def main1():
     pass
     t = parse()
     printTree(t)
+    return t
 
 
 def printTree(root):
@@ -762,18 +769,29 @@ def cleanErrorFile():
     try:
         output = open("Tree.txt", "w+")
         for error in errores2:
-            output.write(error+"\n")
+            output.write(error + "\n")
         for valido in noErrores:
-            output.write(valido+"\n")
+            output.write(valido + "\n")
         output.close()
     except:
         print("Problema al escribir txt - cleanErrorFile()")
 
+
 # Iniciamos programa:
-try:
-    output = open("Tree.txt", "w+")
-    main1()
-    output.close()
-    cleanErrorFile()
-except:
-    pass
+def init_sintactic():
+    global output
+    try:
+        output = open("Tree.txt", "w+")
+        tree = main1()
+        output.close()
+        cleanErrorFile()
+        return tree
+    except Exception as e:
+        print("Error en el main: ", e)
+        pass
+
+
+# Si se llama unicamente el archivo "Sintactico.py":
+# Cuando se llama desde el Análisis gramátical se va directamente a init_sintactic.
+if __name__ == '__main__':
+    init_sintactic()
