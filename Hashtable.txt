@@ -1,0 +1,10 @@
+Gramatical error, variable 'd' is not defined at line 21 
+Gramatical error, variable 'mas' is not defined at line 39 
+
+Nombre_variable-Localidad-Numero_linea-Valor-Tipo
+x-1-['3', '5', '8', '37']-8-int
+y-1-['3', '6', '7', '9', '11', '14', '23', '23', '28', '28', '34', '36', '44']-129-int
+z-1-['3', '7', '10']-64-int
+a-1-['4', '12', '14', '25', '25', '29', '30', '30', '40', '41']-5.00-real
+b-1-['4', '17', '19', '26', '26', '29', '32', '32']-5.00-real
+c-1-['4']-None-real
