@@ -295,6 +295,14 @@ def declaration_stmt(synchset):
         tipo = token.tipo
         match(token.tipo)
 
+        # Mejoramos el tipo de atributo que será
+        if tipo == "TKN_INT":
+            tipo = "int"
+        elif tipo == "TKN_REAL":
+            tipo = "real"
+        elif tipo == "TKN_BOOLEAN":
+            tipo = "boolean"
+
         w = newStmtNode(StmtKind.AssignK)
         t.branch[0] = w
         flag = False
@@ -693,7 +701,7 @@ def printTree(root):
     global output
     i = 0
     try:
-        print(root.token.lexema)
+        # print(root.token.lexema)
         output.write(root.token.lexema + "\n")
         while root.branch[i] is not None:
             printBranch(root.branch[i], "   ")
@@ -704,7 +712,7 @@ def printTree(root):
 
 def printBranch(root, tabulacion):
     global output
-    print(tabulacion, root.token.lexema)
+    # print(tabulacion, root.token.lexema)
     output.write(tabulacion + root.token.lexema + "\n")
     i = 0
     try:
@@ -724,7 +732,7 @@ def printBranch(root, tabulacion):
 
 
 def printSibling(root, tabulacion):
-    print(tabulacion, root.token.lexema)
+    # print(tabulacion, root.token.lexema)
     i = 0
     try:
         while root.branch[i] is not None:
@@ -795,3 +803,7 @@ def init_sintactic():
 # Cuando se llama desde el Análisis gramátical se va directamente a init_sintactic.
 if __name__ == '__main__':
     init_sintactic()
+
+
+# NOTA: para que muestre el árbol en el IDE habrá que descomentar las lineas referentes al -print- dentro de
+# printTree(), printSibling y printBranch
