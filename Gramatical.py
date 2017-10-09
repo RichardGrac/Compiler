@@ -17,7 +17,7 @@ class Symbol:
         self.Node = node
 
 
-output = None  # Escribirá la salida en el txt
+errores = []
 primitivo = None  # TKN_BOOLEAN, TKN_INT, TKN_REAL
 deepTable = {}  # Contenedor de VARIABLE-PROFUNDIDAD
 symbolsTable = {}  # Contenedor de VARIABLE-SIMBOLO
@@ -33,16 +33,19 @@ def kill_instance_variables(deep):
 
     # Eliminamos todas esas claves-valores
     for rmv in remove:
-        print("Variable '" + rmv + "' deleted")
+        # print("Variable '" + rmv + "' deleted")
         del deepTable[rmv]
         del symbolsTable[rmv]
 
 
 def does_variable_exist(t):
+    global errores
     if t.token.lexema in symbolsTable:  # O tambien "if t.token.lexema in deepTable"
         return True
     else:
-        print("Gramatical error, variable '" + t.token.lexema + "' is not defined at line", str(t.token.linea))
+        # print("Gramatical error, variable '" + t.token.lexema + "' is not defined at line", str(t.token.linea))
+        errores.append("Gramatical error, variable '" + t.token.lexema + "' is not defined at line " +
+                       str(t.token.linea))
         return False
 
 
@@ -51,7 +54,9 @@ def get_primitive(t, deep):
         symbol = symbolsTable[t.token.lexema]
         return symbol.Node.attr.tipe
     else:
-        print("Gramatical error, variable '" + t.token.lexema + "' is not defined at line", str(t.token.linea))
+        errores.append("Gramatical error, variable '" + t.token.lexema + "' is not defined at line " +
+                       str(t.token.linea))
+        # print("Gramatical error, variable '" + t.token.lexema + "' is not defined at line " + str(t.token.linea))
 
 
 # def isLogicSemantic(token):
@@ -75,7 +80,7 @@ def get_primitive(t, deep):
 def validate_consts(token):
     if (token.tipo == "TKN_NUM") | (token.tipo == "TKN_ID"):
         if (token.lexema.__contains__(".")) & (primitivo == "int"):
-            print("Possible loss of precision at line", str(token.linea))
+            # print("Possible loss of precision at line", str(token.linea))
             return int(float(token.lexema))
         elif primitivo == "int":
             return int(token.lexema)
@@ -118,7 +123,7 @@ def is_type_correct(t, deep):
 
 
 def validate_exp_tree(t, deep):
-    global primitivo
+    global primitivo, errores
     if t is None:
         return
 
@@ -134,16 +139,16 @@ def validate_exp_tree(t, deep):
         val2 = validate_exp_tree(t.branch[1], deep)
         if (val1 is not "error") & (val2 is not "error"):
             if token.lexema == "+":
-                return val1+val2
+                return val1 + val2
             elif token.lexema == "-":
-                return val1-val2
+                return val1 - val2
             elif token.lexema == "*":
-                return val1*val2
+                return val1 * val2
             elif (token.lexema == "/") & (primitivo == "int"):
-                print("Possible loss of precision at line ", str(token.linea))  # token.lexema
-                return val1/val2
+                # print("Possible loss of precision at line ", str(token.linea))  # token.lexema
+                return int(val1/val2)
             elif token.lexema == "/":
-                return val1/val2
+                return val1 / val2
         else:
             return "error"
 
@@ -154,7 +159,9 @@ def validate_exp_tree(t, deep):
     elif t.kind == ExpKind.IdK:
         if does_variable_exist(t):
             if not is_type_correct(t, deep):
-                print("It is not posible to perform the assignment", primitivo, "-", t.token.lexema)
+                # print("It is not posible to perform the assignment " + primitivo + " -> " + t.token.lexema)
+                errores.append("It is not posible to perform the assignment " + primitivo + " -> "
+                               + t.token.lexema)
             else:
                 # Lo sacamos del symbolsTable y actualizamos linea en la que reaparecio la variable
                 symbol = symbolsTable[t.token.lexema]
@@ -174,11 +181,13 @@ def make_variable(t, deep):
         return
     token = t.token
     if t.token.lexema in symbolsTable:
-        print("Gramatical error: variable " + token.lexema + " is already defined at line", str(t.token.linea))
+        # print("Gramatical error: variable " + token.lexema + " is already defined at line", str(t.token.linea))
+        errores.append("Gramatical error: variable " + token.lexema + " is already defined at line" +
+                       str(t.token.linea))
     else:
         symbolsTable[token.lexema] = Symbol(token.lexema, deep, [token.linea], None, t.attr.tipe, t)
         deepTable[token.lexema] = deep
-        print(t.attr.tipe, token.lexema)
+        # print(t.attr.tipe, token.lexema)
 
     try:
         tAux = t.sibling[0]
@@ -257,7 +266,9 @@ def validate_boolean_expresion(t, deep):
     elif t.kind == ExpKind.ConstK:
         return validate_consts(t.token)
     else:
-        print("Gramatical error, incorrect use of the boolean expression at line", str(t.token.linea))
+        # print("Gramatical error, incorrect use of the boolean expression at line", str(t.token.linea))
+        errores.append("Gramatical error, incorrect use of the boolean expression at line " + str(t.token.linea))
+
 
 # Conjunto de boolean_expression y exp
 def validate_cout_expression(t, deep):
@@ -270,7 +281,8 @@ def validate_cout_expression(t, deep):
         val = validate_exp_tree(t, deep)
 
     if val is not "error":
-        print("cout expression := ", val)
+        # print("cout expression := ", val)
+        pass
     elif val is "error":
         # print("Grama")
         pass
@@ -287,12 +299,12 @@ def update_symbolsTable(t, val, msg):
     if msg == 1:
         # Ocurre cuando hay una creacion o modificacion del valor de la variable, si msg==0 es porque
         # solo modificamos la linea en donde reapareció alguna variable (no imprimimos nuevo valor)
-        print(t.token.lexema, ":=", str(val))
-
+        # print(t.token.lexema, ":=", str(val))
+        pass
 
 
 def node_secuence(t, deep):
-    global primitivo
+    global primitivo, errores
     sibling = 0
     if t is None:
         return
@@ -300,22 +312,24 @@ def node_secuence(t, deep):
     if t.nodeKind == NodeKind.StmtK:
         if t.kind == StmtKind.MainK:
             node_secuence(t.branch[0], (deep + 1))
-            kill_instance_variables(deep + 1)
+            # kill_instance_variables(deep + 1)
 
         elif t.kind == StmtKind.IfK:
             primitivo = "real"
-            val = validate_boolean_expresion(t.branch[0], (deep+1))
+            val = validate_boolean_expresion(t.branch[0], (deep + 1))
             if val is True:
-                print("'if' expression True at line", t.branch[0].token.linea)
+                # print("'if' expression True at line", t.branch[0].token.linea)
+                pass
             elif val is False:
-                print("'if' expression False at line", t.branch[0].token.linea)
+                # print("'if' expression False at line", t.branch[0].token.linea)
+                pass
             else:
                 pass
             kill_instance_variables(deep + 1)
             node_secuence(t.sibling[0].branch[0], (deep + 1))
             kill_instance_variables(deep + 1)
             sibling = 1
-            try:    # Puede no tener el else
+            try:  # Puede no tener el else
                 node_secuence(t.sibling[1].branch[0], (deep + 1))
                 kill_instance_variables(deep + 1)
                 sibling = 2
@@ -325,7 +339,7 @@ def node_secuence(t, deep):
 
         elif t.kind == StmtKind.CoutK:
             # primitivo = "real"
-            primitivo = get_primitive(t.branch[0], deep)
+            # get_primitive(t.branch[0], deep)
             validate_cout_expression(t.branch[0], deep)
 
         elif t.kind == StmtKind.AssignK:
@@ -336,7 +350,10 @@ def node_secuence(t, deep):
                     if val is not "error":
                         update_symbolsTable(t.branch[0], val, 1)
                     else:
-                        print("Gramatical error, incorrect assignment at line", str(t.branch[1].token.linea))
+                        # print("Gramatical error, incorrect assignment at line", str(t.branch[1].token.linea))
+                        errores.append("Gramatical error, incorrect assignment at line " +
+                                       str(t.branch[1].token.linea))
+
                 else:
                     val = validate_exp_tree(t.branch[1], deep)
                     if val is not "error":
@@ -345,7 +362,12 @@ def node_secuence(t, deep):
                         else:
                             update_symbolsTable(t.branch[0], val, 1)
                     else:
-                        print("Gramatical error, incorrect assignment at line", str(t.branch[1].token.linea))
+                        # print("Gramatical error, incorrect assignment at line", str(t.branch[1].token.linea))
+                        errores.append("Gramatical error, incorrect assignment at line " +
+                                       str(t.branch[1].token.linea))
+            else:
+                pass
+
 
         elif t.kind == StmtKind.CinK:
             does_variable_exist(t.branch[0])
@@ -354,16 +376,16 @@ def node_secuence(t, deep):
             make_variable(t.branch[0], deep)
 
         elif t.kind == StmtKind.RepeatK:
-            node_secuence(t.branch[0], (deep+1))
-            kill_instance_variables(deep+1)
+            node_secuence(t.branch[0], (deep + 1))
+            kill_instance_variables(deep + 1)
             val = validate_boolean_expresion(t.sibling[0].branch[0], (deep + 1))
-            kill_instance_variables(deep+1)
+            kill_instance_variables(deep + 1)
             sibling = 1
 
         elif t.kind == StmtKind.WhileK:
-            val = validate_boolean_expresion(t.branch[0], (deep+1))
-            node_secuence(t.branch[1], (deep+1))
-            kill_instance_variables(deep+1)
+            val = validate_boolean_expresion(t.branch[0], (deep + 1))
+            node_secuence(t.branch[1], (deep + 1))
+            kill_instance_variables(deep + 1)
             sibling = 2
 
     try:
@@ -375,18 +397,37 @@ def node_secuence(t, deep):
         pass
 
 
+def printHashtable(output, errores, symbolsTable):
+    for error in errores:
+        output.write(error + " \n")
+
+    output.write("\nNombre_variable-Localidad-Numero_linea-Valor-Tipo\n")
+    for symbol in symbolsTable:
+        output.write(symbolsTable[symbol].name + "-" + str(symbolsTable[symbol].deep) + "-"
+                     + str(symbolsTable[symbol].lines) + "-" + str(symbolsTable[symbol].val) + "-"
+                     + symbolsTable[symbol].dtype + "\n")
+
+
+def printErrors(errores):
+    for error in errores:
+        print(error)
+
+
 def semantico():
-    global output
+    global symbolsTable, errores
     try:
-        output = open("variable.txt", "w+")
+        output = open("Hashtable.txt", "w+")
         # Hacemos una copia del árbol del Análisis Sintáctico
         t = TreeNode()
         t = Sintactico.init_sintactic()
         # Iniciamos el proceso con el árbol:
         node_secuence(t, 0)
+        printErrors(errores)  # Errores en consola
+        printHashtable(output, errores, symbolsTable)  # Errores y tabla en Hashtable.txt
         output.close()
     except Exception as e:
-        print("Exception at semantico(): ", e)
+        # print("Exception at semantico(): ", e)
+        pass
 
 
 if __name__ == '__main__':
