@@ -420,8 +420,8 @@ def semantico():
     global symbolsTable, errores
     try:
         output = open("Hashtable.txt", "w+")
-        # Leemos el archivo serializado que viene en los argumentos, se des-serealiza y se iguala a la variable 't'
-        # para continuar con el analisis sintactico
+        # Leeo el archivo serializado que viene en los argumentos, se deserealiza y se iguala a la variable 't'
+        # para continuar con el analisis semantico
         with open(sys.argv[1], 'rb') as f:
             t = pickle.load(f)
         node_secuence(t, 0)
