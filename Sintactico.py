@@ -9,11 +9,11 @@ token = None  # Token actual
 contador = 0  # Para recorrer los tokens
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-filepath = sys.argv[1]
-output = open(filepath, "r")
+# filepath = sys.argv[1]
+# output = open(filepath, "r")
 
 # Para leer desde txt:
-# output = open("Tokens.txt", "r")
+output = open("Tokens.txt", "r")
 
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
@@ -628,7 +628,7 @@ def main1():
 
 def printTree(root):
     global output
-    #serializo el objeto root y lo guardo en el archivo 'tree.bin'
+    # serializo el objeto root y lo guardo en el archivo 'tree.bin'
     with open('tree.bin', 'wb') as f:
         pickle.dump(root, f)
     i = 0
@@ -737,5 +737,5 @@ if __name__ == '__main__':
     init_sintactic()
 
 
-# NOTA: para que muestre el árbol en el IDE habrá que descomentar las lineas referentes al -print- dentro de
-# printTree(), printSibling y printBranch
+    # NOTA: para que muestre el árbol en el IDE habrá que descomentar las lineas referentes al -print- dentro de
+    # printTree(), printSibling y printBranch

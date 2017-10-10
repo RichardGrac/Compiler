@@ -82,6 +82,7 @@ def validate_consts(token):
         if (token.lexema.__contains__(".")) & (primitivo == "int"):
             # print("Possible loss of precision at line", str(token.linea))
             return int(float(token.lexema))
+            # return "error"
         elif primitivo == "int":
             return int(token.lexema)
 
@@ -107,7 +108,7 @@ def is_type_correct(t, deep):
             return False
     elif primitivo == "real":
         if get_primitive(t, deep) == "int":
-            return True
+            return False
         elif get_primitive(t, deep) == "real":
             # perdida de precisión
             return True
@@ -116,7 +117,7 @@ def is_type_correct(t, deep):
     elif primitivo == "boolean":
         pass
 
-    if get_primitive(t, tipo) == primitivo:
+    if get_primitive(t, deep) == primitivo:
         return True
     else:
         return False
@@ -160,8 +161,8 @@ def validate_exp_tree(t, deep):
         if does_variable_exist(t):
             if not is_type_correct(t, deep):
                 # print("It is not posible to perform the assignment " + primitivo + " -> " + t.token.lexema)
-                errores.append("It is not posible to perform the assignment " + primitivo + " -> "
-                               + t.token.lexema)
+                errores.append("Gramatical error, '" + t.token.lexema + "' can not be '" + primitivo + "' "
+                                                                                "at line " + t.token.linea)
             else:
                 # Lo sacamos del symbolsTable y actualizamos linea en la que reaparecio la variable
                 symbol = symbolsTable[t.token.lexema]
@@ -212,7 +213,6 @@ def validate_boolean_expresion(t, deep):
     global primitivo
     token = t.token
     if isLogicSecondOrder(token):
-        # primitivo = "real"
         val1 = validate_exp_tree(t.branch[0], deep)
         val2 = validate_exp_tree(t.branch[1], deep)
         if (val1 is not "error") & (val2 is not "error"):
@@ -420,10 +420,16 @@ def semantico():
     global symbolsTable, errores
     try:
         output = open("Hashtable.txt", "w+")
-        # Leeo el archivo serializado que viene en los argumentos, se deserealiza y se iguala a la variable 't'
-        # para continuar con el analisis semantico
-        with open(sys.argv[1], 'rb') as f:
+
+        # Para leer desde binario:
+        with open("tree.bin", 'rb') as f:
             t = pickle.load(f)
+
+        # Para leer desde argumento, leo el archivo serializado que viene en los argumentos,
+        # se deserealiza y se iguala a la variable 't' para continuar con el analisis semantico:
+        # with open(sys.argv[1], 'rb') as f:
+        #     t = pickle.load(f)
+
         node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
         printHashtable(output, errores, symbolsTable)  # Errores y tabla en Hashtable.txt
