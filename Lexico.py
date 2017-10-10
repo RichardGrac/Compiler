@@ -60,11 +60,11 @@ def decreasing():
 
 # ----------------------------------- INICIO DE ANALISIS LEXICO ------------------------------
 # Para leer desde txt:
-archivo = open("Input.txt")
+# archivo = open("Input.txt")
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-# fileLocation = sys.argv[1]
-# archivo = open(fileLocation)
+fileLocation = sys.argv[1]
+archivo = open(fileLocation)
 
 linea = archivo.read()
 linea += "\n"

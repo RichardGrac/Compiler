@@ -1,77 +1,6 @@
-from enum import Enum
+from TreeNode import *
 import sys
-
-
-class Token:
-    pass
-    columna = 0
-    linea = 0
-    tipo = ""
-    lexema = ""
-
-    def __init__(self, linea, columna, tipo, lexema):
-        self.columna = columna
-        self.linea = linea
-        self.tipo = tipo
-        self.lexema = lexema
-
-
-class NodeKind(Enum):
-    StmtK = 1
-    ExpK = 2
-
-
-class StmtKind(Enum):
-    MainK = 1
-    IfK = 2
-    CoutK = 3
-    CinK = 4
-    DeclK = 5
-    AssignK = 6
-    RepeatK = 7
-    UntilK = 8
-    WhileK = 9
-    ThenK = 10
-    ElseK = 11
-
-
-class ExpKind(Enum):
-    OpK = 1
-    ConstK = 2
-    IdK = 3
-
-
-class ExpType:
-    def __init__(self):
-        self.Real = 0.0
-        self.Integer = 0
-        self.Boolean = False
-
-
-class Kind(Enum):
-    stmt = StmtKind  # StmtKind = Objeto que contiene el tipo de Statement
-    exp = ExpKind  # ExpKind = Objecto que contiene el tipo de Expresión
-
-
-class Attr:
-    def __init__(self):
-        self.tipe = ""
-        self.val = 0.0
-        self.name = ""
-
-
-class TreeNode:
-    pass
-
-    def __init__(self):
-        self.token = Token(None, None, None, None)  # Token
-        self.sibling = []  # Hermanos
-        self.nodeKind = None  # Exp o Stmt
-        self.kind = None  # Kind
-        self.attr = Attr()  # Atributos
-        self.expType = None  # Real,Int,Boolean
-        self.branch = [None] * 3  # Hijos
-
+import pickle
 
 # ------------------------------------- INICIO DE ANALIZADOR SINTÁCTICO -----------------------------
 
@@ -80,11 +9,11 @@ token = None  # Token actual
 contador = 0  # Para recorrer los tokens
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-# filepath = sys.argv[1]
-# output = open(filepath, "r")
+filepath = sys.argv[1]
+output = open(filepath, "r")
 
 # Para leer desde txt:
-output = open("Tokens.txt", "r")
+# output = open("Tokens.txt", "r")
 
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
@@ -699,9 +628,12 @@ def main1():
 
 def printTree(root):
     global output
+    #serializo el objeto root y lo guardo en el archivo 'tree.bin'
+    with open('tree.bin', 'wb') as f:
+        pickle.dump(root, f)
     i = 0
     try:
-        # print(root.token.lexema)
+        print(root.token.lexema)
         output.write(root.token.lexema + "\n")
         while root.branch[i] is not None:
             printBranch(root.branch[i], "   ")
@@ -712,7 +644,7 @@ def printTree(root):
 
 def printBranch(root, tabulacion):
     global output
-    # print(tabulacion, root.token.lexema)
+    print(tabulacion, root.token.lexema)
     output.write(tabulacion + root.token.lexema + "\n")
     i = 0
     try:
@@ -732,7 +664,7 @@ def printBranch(root, tabulacion):
 
 
 def printSibling(root, tabulacion):
-    # print(tabulacion, root.token.lexema)
+    print(tabulacion, root.token.lexema)
     i = 0
     try:
         while root.branch[i] is not None:

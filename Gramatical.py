@@ -1,6 +1,6 @@
-from Sintactico import *
-import Sintactico
-
+from TreeNode import *
+import pickle
+import sys
 
 # Se necesita de guardar la variables y la profundidad, así como el Nodo con sus atributos por lo que
 # haré una hashtable para la VARIABLE-PROFUNDIDAD y otro con la VARIABLE-SIMBOLO
@@ -406,6 +406,9 @@ def printHashtable(output, errores, symbolsTable):
         output.write(symbolsTable[symbol].name + "-" + str(symbolsTable[symbol].deep) + "-"
                      + str(symbolsTable[symbol].lines) + "-" + str(symbolsTable[symbol].val) + "-"
                      + symbolsTable[symbol].dtype + "\n")
+        print(symbolsTable[symbol].name + "-" + str(symbolsTable[symbol].deep) + "-"
+                     + str(symbolsTable[symbol].lines) + "-" + str(symbolsTable[symbol].val) + "-"
+                     + symbolsTable[symbol].dtype)
 
 
 def printErrors(errores):
@@ -417,10 +420,10 @@ def semantico():
     global symbolsTable, errores
     try:
         output = open("Hashtable.txt", "w+")
-        # Hacemos una copia del árbol del Análisis Sintáctico
-        t = TreeNode()
-        t = Sintactico.init_sintactic()
-        # Iniciamos el proceso con el árbol:
+        # Leemos el archivo serializado que viene en los argumentos, se des-serealiza y se iguala a la variable 't'
+        # para continuar con el analisis sintactico
+        with open(sys.argv[1], 'rb') as f:
+            t = pickle.load(f)
         node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
         printHashtable(output, errores, symbolsTable)  # Errores y tabla en Hashtable.txt
