@@ -147,7 +147,7 @@ def validate_exp_tree(t, deep):
                 return val1 * val2
             elif (token.lexema == "/") & (primitivo == "int"):
                 # print("Possible loss of precision at line ", str(token.linea))  # token.lexema
-                return int(val1/val2)
+                return int(val1 / val2)
             elif token.lexema == "/":
                 return val1 / val2
         else:
@@ -162,7 +162,7 @@ def validate_exp_tree(t, deep):
             if not is_type_correct(t, deep):
                 # print("It is not posible to perform the assignment " + primitivo + " -> " + t.token.lexema)
                 errores.append("Gramatical error, '" + t.token.lexema + "' can not be '" + primitivo + "' "
-                                                                                "at line " + t.token.linea)
+                                                                                    "at line " + t.token.linea)
             else:
                 # Lo sacamos del symbolsTable y actualizamos linea en la que reaparecio la variable
                 symbol = symbolsTable[t.token.lexema]
@@ -177,20 +177,29 @@ def validate_exp_tree(t, deep):
     validate_exp_tree(t.branch[1], deep)
 
 
+# Es llamada por StmtKind.DeclK. Se llama a sí misma si son varias declaraciones de variables a un tipo
 def make_variable(t, deep):
+    global primitivo
     if t is None:
         return
     token = t.token
+
     if t.token.lexema in symbolsTable:
         # print("Gramatical error: variable " + token.lexema + " is already defined at line", str(t.token.linea))
         errores.append("Gramatical error: variable " + token.lexema + " is already defined at line" +
                        str(t.token.linea))
     else:
-        symbolsTable[token.lexema] = Symbol(token.lexema, deep, [token.linea], None, t.attr.tipe, t)
+        primitivo = t.attr.tipe  # De acuerdo al attr.tipe del Nodo, asignamos el mismo tipo a las variables
+        val = 0  # Inicialización de variable para enteros y booleanos
+        if primitivo == "real":
+            val = 0.0
+        # Adición de una tupla/simbolo a la tabla Hash de simbolos
+        symbolsTable[token.lexema] = Symbol(token.lexema, deep, [token.linea], val, primitivo, t)
         deepTable[token.lexema] = deep
         # print(t.attr.tipe, token.lexema)
 
     try:
+        # Tantas variables sean declaradas del mismo tipo, se vuelve a llamar:
         tAux = t.sibling[0]
         make_variable(tAux, deep)
     except Exception as e:
@@ -209,11 +218,59 @@ def isLogicSecondOrder(token):
         return False
 
 
+def check_booleans(t, deep):
+    # (Si 1 existe y es booleano) & ((si 2 existe y es diferente de boolean) | (si 2 es TKN_NUMERO)):
+    # excepto si ese TKN_NUMERO es un '1' o un '0'
+    if t.branch[0].token.lexema in symbolsTable:
+        primitive1 = get_primitive(t.branch[0], deep)
+        if primitive1 == "boolean":
+            if t.branch[1].token.lexema in symbolsTable:
+                primitive2 = get_primitive(t.branch[1], deep)
+                if primitive2 != "boolean":
+                    return "error"
+                else:
+                    return True
+            elif t.branch[1].token.tipo == "TKN_NUM":
+                if (t.branch[1].token.lexema == '0') | (t.branch[1].token.lexema == '1'):
+                    return True
+                else:
+                    return "error"
+    # (Si 2 existe y es booleano) & ((si 1 existe y es diferente de boolean) | (si 1 es TKN_NUMERO)):
+    if t.branch[1].token.lexema in symbolsTable:
+        primitive1 = get_primitive(t.branch[1], deep)
+        if primitive1 == "boolean":
+            if t.branch[0].token.lexema in symbolsTable:
+                primitive2 = get_primitive(t.branch[0], deep)
+                if primitive2 != "boolean":
+                    return "error"
+                else:
+                    return True
+            elif t.branch[0].token.tipo == "TKN_NUM":
+                if (t.branch[0].token.lexema == '0') | (t.branch[0].token.lexema == '1'):
+                    return True
+                else:
+                    return "error"
+    return True  # Es valida la expresion booleana
+
+
 def validate_boolean_expresion(t, deep):
     global primitivo
     token = t.token
     if isLogicSecondOrder(token):
+
+        # No se puede comparar un booleano con un id o un numero, excepto si ese numero es 0 o 1, verificamos:
+        if check_booleans(t, deep) is "error":
+            # print("Gramatical error, incorrect use of the boolean expression at line", str(t.token.linea))
+            errores.append("Gramatical error, incorrect use of the boolean expression at line " + str(t.token.linea))
+            return "error"
+
+        # Seteamos primitivos para poder hacer la comparación booleana
+        if t.branch[0].token.tipo != "TKN_NUM":
+            primitivo = get_primitive(t.branch[0], deep)
         val1 = validate_exp_tree(t.branch[0], deep)
+
+        if t.branch[1].token.tipo != "TKN_NUM":
+            primitivo = get_primitive(t.branch[1], deep)
         val2 = validate_exp_tree(t.branch[1], deep)
         if (val1 is not "error") & (val2 is not "error"):
             if token.lexema == "<":
@@ -386,7 +443,7 @@ def node_secuence(t, deep):
             val = validate_boolean_expresion(t.branch[0], (deep + 1))
             node_secuence(t.branch[1], (deep + 1))
             kill_instance_variables(deep + 1)
-            sibling = 2
+            # sibling = 2
 
     try:
         # sibling normalmente será 0, excepto si viene del IfK/repeatK(será 1) y si tiene o no parte else(será 2)
@@ -407,8 +464,8 @@ def printHashtable(output, errores, symbolsTable):
                      + str(symbolsTable[symbol].lines) + "-" + str(symbolsTable[symbol].val) + "-"
                      + symbolsTable[symbol].dtype + "\n")
         print(symbolsTable[symbol].name + "-" + str(symbolsTable[symbol].deep) + "-"
-                     + str(symbolsTable[symbol].lines) + "-" + str(symbolsTable[symbol].val) + "-"
-                     + symbolsTable[symbol].dtype)
+              + str(symbolsTable[symbol].lines) + "-" + str(symbolsTable[symbol].val) + "-"
+              + symbolsTable[symbol].dtype)
 
 
 def printErrors(errores):
@@ -419,16 +476,17 @@ def printErrors(errores):
 def semantico():
     global symbolsTable, errores
     try:
+        # Para tener una salida en txt sin necesidad del IDE
         output = open("Hashtable.txt", "w+")
 
         # Para leer desde binario:
-        with open("tree.bin", 'rb') as f:
-            t = pickle.load(f)
+        # with open("tree.bin", 'rb') as f:
+        #     t = pickle.load(f)
 
         # Para leer desde argumento, leo el archivo serializado que viene en los argumentos,
         # se deserealiza y se iguala a la variable 't' para continuar con el analisis semantico:
-        # with open(sys.argv[1], 'rb') as f:
-        #     t = pickle.load(f)
+        with open(sys.argv[1], 'rb') as f:
+            t = pickle.load(f)
 
         node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
