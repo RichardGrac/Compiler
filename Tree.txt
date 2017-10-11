@@ -4,9 +4,21 @@ main
        y
        z
    real
+       x
        a
        b
        c
+       c
+   :=
+       a
+       +
+           a
+           1
+   :=
+       b
+       -
+           b
+           1
    :=
        x
        23
@@ -71,10 +83,42 @@ main
                        2
                34
            1
+   cin
+       a
+   cout
+       a
+   cout
+       +
+           a
+           4
+   :=
+       a
+       7
+   :=
+       a
+       *
+           z
+           x
+   cout
+       >
+           a
+           4
    if
        >
+           +
+               x
+               4
+           a
+   then
+       :=
+           a
+           +
+               a
+               3
+   if
+       <
            2
-           3
+           a
    then
        :=
            y
@@ -83,7 +127,7 @@ main
                3
    else
        if
-           <
+           >
                4
                2
        then
@@ -94,29 +138,24 @@ main
            :=
                b
                5.0
-       :=
-           d
-           +
+           :=
+               d
                +
-                   a
-                   b
-               *
-                   c
-                   5
-   :=
-       y
-       +
+                   +
+                       a
+                       b
+                   *
+                       c
+                       5
+       :=
            y
-           1
+           +
+               y
+               1
    :=
        a
        +
            a
-           1
-   :=
-       b
-       -
-           b
            1
    repeat
        :=
@@ -152,26 +191,5 @@ main
        ==
            y
            0
-       cout
+       cin
            x
-       repeat
-           cout
-               +
-                   mas
-                   *
-                       5
-                       2
-           if
-               !=
-                   6
-                   a
-           then
-               :=
-                   a
-                   5
-               cin
-                   x
-       until
-           <
-               y
-               5

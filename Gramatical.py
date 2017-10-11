@@ -17,9 +17,9 @@ class Symbol:
         self.Node = node
 
 
-errores = []
-primitivo = None  # TKN_BOOLEAN, TKN_INT, TKN_REAL
-deepTable = {}  # Contenedor de VARIABLE-PROFUNDIDAD
+errores = []       # guadará los errores para al final imprimirlos/guardarlos
+primitivo = None   # "boolean", "int", "real"
+deepTable = {}     # Contenedor de VARIABLE-PROFUNDIDAD
 symbolsTable = {}  # Contenedor de VARIABLE-SIMBOLO
 
 
@@ -37,7 +37,7 @@ def kill_instance_variables(deep):
         del deepTable[rmv]
         del symbolsTable[rmv]
 
-
+# Verifica si la variable del nodo que se envía existe ya dentro de la tabla de simbolos
 def does_variable_exist(t):
     global errores
     if t.token.lexema in symbolsTable:  # O tambien "if t.token.lexema in deepTable"
@@ -48,7 +48,7 @@ def does_variable_exist(t):
                        str(t.token.linea))
         return False
 
-
+# Devuelve el valor primitivo (boolean, int o real) de un simbolo ya existente
 def get_primitive(t, deep):
     if t.token.lexema in symbolsTable:
         symbol = symbolsTable[t.token.lexema]
@@ -76,7 +76,7 @@ def get_primitive(t, deep):
 #     else:
 #         return not isLogicSemantic(token)
 
-
+# Valida si el primitivo actual es igual al que se va a comparar/igualar
 def validate_consts(token):
     if (token.tipo == "TKN_NUM") | (token.tipo == "TKN_ID"):
         if (token.lexema.__contains__(".")) & (primitivo == "int"):
@@ -161,15 +161,17 @@ def validate_exp_tree(t, deep):
         if does_variable_exist(t):
             if not is_type_correct(t, deep):
                 # print("It is not posible to perform the assignment " + primitivo + " -> " + t.token.lexema)
-                errores.append("Gramatical error, '" + t.token.lexema + "' can not be '" + primitivo + "' "
-                                                                                    "at line " + t.token.linea)
+                # errores.append("Gramatical error, '" + t.token.lexema + "' can not be '" + primitivo + "' "
+                #                                                                     "at line " + t.token.linea)
+                return "error"
             else:
                 # Lo sacamos del symbolsTable y actualizamos linea en la que reaparecio la variable
                 symbol = symbolsTable[t.token.lexema]
                 update_symbolsTable(t, symbol.val, 0)
-                # Aparentemente se lo seteamos como una Constante
-                t.token.lexema = str(symbol.val)
-                return validate_consts(t.token)
+                # Sacamos ese valor para castearlo, solo que la función recibe un tipo Token:
+                tok = Token(t.token.columna, t.token.linea, t.token.tipo, str(symbol.val))
+                # t.token.lexema = str(symbol.val)
+                return validate_consts(tok)
         else:
             return "error"
 
@@ -186,7 +188,7 @@ def make_variable(t, deep):
 
     if t.token.lexema in symbolsTable:
         # print("Gramatical error: variable " + token.lexema + " is already defined at line", str(t.token.linea))
-        errores.append("Gramatical error: variable " + token.lexema + " is already defined at line" +
+        errores.append("Gramatical error, variable " + token.lexema + " is already defined at line " +
                        str(t.token.linea))
     else:
         primitivo = t.attr.tipe  # De acuerdo al attr.tipe del Nodo, asignamos el mismo tipo a las variables
@@ -219,7 +221,7 @@ def isLogicSecondOrder(token):
 
 
 def check_booleans(t, deep):
-    # (Si 1 existe y es booleano) & ((si 2 existe y es diferente de boolean) | (si 2 es TKN_NUMERO)):
+    # Error: (Si 1 existe y es booleano) & (si 2 existe y es diferente de boolean):
     # excepto si ese TKN_NUMERO es un '1' o un '0'
     if t.branch[0].token.lexema in symbolsTable:
         primitive1 = get_primitive(t.branch[0], deep)
@@ -231,11 +233,12 @@ def check_booleans(t, deep):
                 else:
                     return True
             elif t.branch[1].token.tipo == "TKN_NUM":
-                if (t.branch[1].token.lexema == '0') | (t.branch[1].token.lexema == '1'):
-                    return True
-                else:
-                    return "error"
-    # (Si 2 existe y es booleano) & ((si 1 existe y es diferente de boolean) | (si 1 es TKN_NUMERO)):
+                return True
+            #     if (t.branch[1].token.lexema == '0') | (t.branch[1].token.lexema == '1'):
+            #         return True
+            #     else:
+            #         return "error"
+    # (Si 2 existe y es booleano) & (si 1 existe y es diferente de boolean):
     if t.branch[1].token.lexema in symbolsTable:
         primitive1 = get_primitive(t.branch[1], deep)
         if primitive1 == "boolean":
@@ -246,10 +249,11 @@ def check_booleans(t, deep):
                 else:
                     return True
             elif t.branch[0].token.tipo == "TKN_NUM":
-                if (t.branch[0].token.lexema == '0') | (t.branch[0].token.lexema == '1'):
-                    return True
-                else:
-                    return "error"
+                return True
+            #     if (t.branch[0].token.lexema == '0') | (t.branch[0].token.lexema == '1'):
+            #         return True
+            #     else:
+            #         return "error"
     return True  # Es valida la expresion booleana
 
 
@@ -346,7 +350,7 @@ def validate_cout_expression(t, deep):
 
 
 def update_symbolsTable(t, val, msg):
-    t.attr.val = val
+    t.attr.val = val  # Atribuimos al Nodo: no necesario
     # Sacamos el simbolo y actualizamos su información
     symbol = symbolsTable[t.token.lexema]
     symbol.lines.append(t.token.linea)
@@ -381,15 +385,17 @@ def node_secuence(t, deep):
                 # print("'if' expression False at line", t.branch[0].token.linea)
                 pass
             else:
+                val = None
                 pass
             kill_instance_variables(deep + 1)
             node_secuence(t.sibling[0].branch[0], (deep + 1))
             kill_instance_variables(deep + 1)
             sibling = 1
             try:  # Puede no tener el else
-                node_secuence(t.sibling[1].branch[0], (deep + 1))
-                kill_instance_variables(deep + 1)
-                sibling = 2
+                if t.sibling[1].token.tipo == "TKN_ELSE":
+                    node_secuence(t.sibling[1].branch[0], (deep + 1))
+                    kill_instance_variables(deep + 1)
+                    sibling = 2
             except Exception as e:
                 # print("Exception in IfK:", e)
                 pass
@@ -412,7 +418,7 @@ def node_secuence(t, deep):
                                        str(t.branch[1].token.linea))
 
                 else:
-                    val = validate_exp_tree(t.branch[1], deep)
+                    val = validate_exp_tree(t.branch[1], deep)  # <----
                     if val is not "error":
                         if get_primitive(t.branch[0], deep) == "real":
                             update_symbolsTable(t.branch[0], "{0:.2f}".format(val), 1)
@@ -427,7 +433,11 @@ def node_secuence(t, deep):
 
 
         elif t.kind == StmtKind.CinK:
-            does_variable_exist(t.branch[0])
+            val = does_variable_exist(t.branch[0])
+            if val is True:
+                # Lo sacamos del symbolsTable y actualizamos linea en la que reaparecio la variable
+                symbol = symbolsTable[t.branch[0].token.lexema]
+                update_symbolsTable(t.branch[0], symbol.val, 0)
 
         elif t.kind == StmtKind.DeclK:
             make_variable(t.branch[0], deep)

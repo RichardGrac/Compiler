@@ -237,18 +237,17 @@ def declaration_stmt(synchset):
         flag = False
 
         while token.tipo == "TKN_ID":  # Posterior a la Declaracion debe seguirle un ID por lo menos
-            q = None
-            p = newStmtNode(StmtKind.AssignK)
+            q = None    # Auxiliar de Nodo
+            p = newStmtNode(StmtKind.AssignK)  # Subnodo de tipo assignación
 
-            i = 0
-            e = t.branch[0]
-            while e is not None:
-                q = e
+            i = 0   # Para iterar los hijos
+            e = t.branch[0]  # e = al hijo[0]
+            while e is not None:    # Vamos a profundizar hijo-hermano-hijo-hermano... hasta que ya no haya hermanos
+                q = e               # Usamos el otro aux2 = aux
                 try:
                     e = e.sibling[i]
                 except:
-                    e = None
-                i += 1
+                    e = None # Ya no hay hermanos, aquí es donde colocaremos el nuevo TKN_ID como hermano siguiente
             # Si solo es un TKN_ID, atribuimos a q. Si son más, atribuimos a p y lo enlazamos con q
             if not flag:
                 q.attr.name = token.lexema
