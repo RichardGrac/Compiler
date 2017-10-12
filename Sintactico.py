@@ -224,11 +224,13 @@ def declaration_stmt(synchset):
         tipo = token.tipo
         match(token.tipo)
 
-        # Mejoramos el tipo de atributo que será
+        # Mejoramos el tipo de atributo que será y valor
+        val = 0
         if tipo == "TKN_INT":
             tipo = "int"
         elif tipo == "TKN_REAL":
             tipo = "real"
+            val = 0.0
         elif tipo == "TKN_BOOLEAN":
             tipo = "boolean"
 
@@ -252,9 +254,11 @@ def declaration_stmt(synchset):
             if not flag:
                 q.attr.name = token.lexema
                 q.attr.tipe = tipo
+                q.attr.val = val
             else:
                 p.attr.name = token.lexema
                 p.attr.tipe = tipo
+                p.attr.val = val
                 q.sibling.append(p)
 
             match("TKN_ID")

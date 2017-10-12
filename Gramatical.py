@@ -2,6 +2,7 @@ from TreeNode import *
 import pickle
 import sys
 
+
 # Se necesita de guardar la variables y la profundidad, así como el Nodo con sus atributos por lo que
 # haré una hashtable para la VARIABLE-PROFUNDIDAD y otro con la VARIABLE-SIMBOLO
 # Tabla de simbolos
@@ -17,9 +18,9 @@ class Symbol:
         self.Node = node
 
 
-errores = []       # guadará los errores para al final imprimirlos/guardarlos
-primitivo = None   # "boolean", "int", "real"
-deepTable = {}     # Contenedor de VARIABLE-PROFUNDIDAD
+errores = []  # guadará los errores para al final imprimirlos/guardarlos
+primitivo = None  # "boolean", "int", "real"
+deepTable = {}  # Contenedor de VARIABLE-PROFUNDIDAD
 symbolsTable = {}  # Contenedor de VARIABLE-SIMBOLO
 
 
@@ -41,6 +42,8 @@ def kill_instance_variables(deep):
 def does_variable_exist(t):
     global errores
     if t.token.lexema in symbolsTable:  # O tambien "if t.token.lexema in deepTable"
+        symbol = symbolsTable[t.token.lexema]
+        assign_val_and_tipe(t, symbol.val, symbol.dtype)
         return True
     else:
         # print("Gramatical error, variable '" + t.token.lexema + "' is not defined at line", str(t.token.linea))
@@ -123,6 +126,17 @@ def is_type_correct(t, deep):
         return False
 
 
+def assign_val_and_tipe(t, val, tipe):
+    # Si alguno de los valores viene vacío solo actualizamos uno
+    if val is None:
+        t.attr.tipe = tipe
+    elif tipe is None:
+        t.attr.val = val
+    else:
+        t.attr.tipe = tipe
+        t.attr.val = val
+
+
 def validate_exp_tree(t, deep):
     global primitivo, errores
     if t is None:
@@ -130,6 +144,7 @@ def validate_exp_tree(t, deep):
 
     if t.kind == ExpKind.OpK:
         token = t.token
+        assign_val_and_tipe(t, None, primitivo)
         # primitivo = get_primitive(t, deep)
 
         # if not is_operator_correct(primitivo, token):
@@ -137,20 +152,29 @@ def validate_exp_tree(t, deep):
 
         # else:
         val1 = validate_exp_tree(t.branch[0], deep)
+        t.branch[0].attr.val = val1
+        assign_val_and_tipe(t.branch[0], val1, None)
         val2 = validate_exp_tree(t.branch[1], deep)
+        assign_val_and_tipe(t.branch[1], val2, None)
         if (val1 is not "error") & (val2 is not "error"):
             if token.lexema == "+":
+                assign_val_and_tipe(t, (val1 + val2), None)
                 return val1 + val2
             elif token.lexema == "-":
+                assign_val_and_tipe(t, (val1 - val2), None)
                 return val1 - val2
             elif token.lexema == "*":
+                assign_val_and_tipe(t, (val1 * val2), None)
                 return val1 * val2
             elif (token.lexema == "/") & (primitivo == "int"):
                 # print("Possible loss of precision at line ", str(token.linea))  # token.lexema
+                assign_val_and_tipe(t, int(val1 / val2), None)
                 return int(val1 / val2)
             elif token.lexema == "/":
+                assign_val_and_tipe(t, (val1 / val2), None)
                 return val1 / val2
         else:
+            assign_val_and_tipe(t, "error", None)
             return "error"
 
 
@@ -234,10 +258,10 @@ def check_booleans(t, deep):
                     return True
             elif t.branch[1].token.tipo == "TKN_NUM":
                 return True
-            #     if (t.branch[1].token.lexema == '0') | (t.branch[1].token.lexema == '1'):
-            #         return True
-            #     else:
-            #         return "error"
+                #     if (t.branch[1].token.lexema == '0') | (t.branch[1].token.lexema == '1'):
+                #         return True
+                #     else:
+                #         return "error"
     # (Si 2 existe y es booleano) & (si 1 existe y es diferente de boolean):
     if t.branch[1].token.lexema in symbolsTable:
         primitive1 = get_primitive(t.branch[1], deep)
@@ -250,10 +274,10 @@ def check_booleans(t, deep):
                     return True
             elif t.branch[0].token.tipo == "TKN_NUM":
                 return True
-            #     if (t.branch[0].token.lexema == '0') | (t.branch[0].token.lexema == '1'):
-            #         return True
-            #     else:
-            #         return "error"
+                #     if (t.branch[0].token.lexema == '0') | (t.branch[0].token.lexema == '1'):
+                #         return True
+                #     else:
+                #         return "error"
     return True  # Es valida la expresion booleana
 
 
@@ -364,6 +388,18 @@ def update_symbolsTable(t, val, msg):
         pass
 
 
+def pre_validate_boolean_expression(t, deep):
+    primitivo = "real"
+    val = validate_boolean_expresion(t, deep)
+    if val == "error":
+        pass
+    elif not val:
+        val = 0
+    else:
+        val = 1
+    assign_val_and_tipe(t, val, "boolean")
+
+
 def node_secuence(t, deep):
     global primitivo, errores
     sibling = 0
@@ -374,19 +410,10 @@ def node_secuence(t, deep):
         if t.kind == StmtKind.MainK:
             node_secuence(t.branch[0], (deep + 1))
             # kill_instance_variables(deep + 1)
+            return t
 
         elif t.kind == StmtKind.IfK:
-            primitivo = "real"
-            val = validate_boolean_expresion(t.branch[0], (deep + 1))
-            if val is True:
-                # print("'if' expression True at line", t.branch[0].token.linea)
-                pass
-            elif val is False:
-                # print("'if' expression False at line", t.branch[0].token.linea)
-                pass
-            else:
-                val = None
-                pass
+            pre_validate_boolean_expression(t.branch[0], (deep + 1))
             kill_instance_variables(deep + 1)
             node_secuence(t.sibling[0].branch[0], (deep + 1))
             kill_instance_variables(deep + 1)
@@ -420,6 +447,8 @@ def node_secuence(t, deep):
                 else:
                     val = validate_exp_tree(t.branch[1], deep)  # <----
                     if val is not "error":
+                        assign_val_and_tipe(t, val, primitivo)
+                        assign_val_and_tipe(t.branch[0], val, primitivo)
                         if get_primitive(t.branch[0], deep) == "real":
                             update_symbolsTable(t.branch[0], "{0:.2f}".format(val), 1)
                         else:
@@ -445,12 +474,12 @@ def node_secuence(t, deep):
         elif t.kind == StmtKind.RepeatK:
             node_secuence(t.branch[0], (deep + 1))
             kill_instance_variables(deep + 1)
-            val = validate_boolean_expresion(t.sibling[0].branch[0], (deep + 1))
+            pre_validate_boolean_expression(t.sibling[0].branch[0], (deep + 1))
             kill_instance_variables(deep + 1)
             sibling = 1
 
         elif t.kind == StmtKind.WhileK:
-            val = validate_boolean_expresion(t.branch[0], (deep + 1))
+            pre_validate_boolean_expression(t.branch[0], (deep + 1))
             node_secuence(t.branch[1], (deep + 1))
             kill_instance_variables(deep + 1)
             # sibling = 2
@@ -483,25 +512,81 @@ def printErrors(errores):
         print(error)
 
 
+def printGramaticalTree(root, output):
+    i = 0
+    try:
+        print(root.token.lexema)
+        output.write(root.token.lexema + "\n")
+        while root.branch[i] is not None:
+            printBranch(root.branch[i], "   ", output)
+            i += 1
+    except:
+        pass
+
+
+def printBranch(root, tabulacion, output):
+    if root.attr.tipe is not None:
+        print(tabulacion, root.token.lexema + "     -> " + root.attr.tipe + " -> " + str(root.attr.val))
+        output.write(tabulacion + root.token.lexema + "     -> " + root.attr.tipe + " -> " + str(root.attr.val) + "\n")
+    else:
+        print(tabulacion, root.token.lexema)
+        output.write(tabulacion + root.token.lexema + "\n")
+    i = 0
+    try:
+        while root.branch[i] is not None:
+            printBranch(root.branch[i], tabulacion + "    ", output)
+            i += 1
+    except Exception as e:
+        print("Error en printBranch: ", e)
+        pass
+
+    i = 0
+    try:
+        while root.sibling[i] is not None:
+            printBranch(root.sibling[i], tabulacion, output)
+            i += 1
+    except:
+        pass
+
+
+def printSibling(root, tabulacion, output):
+    if root.attr.tipe is not None:
+        print(tabulacion, root.token.lexema + "     -> " + root.attr.tipe + " -> " + str(root.attr.val))
+        output.write(tabulacion + root.token.lexema + "     -> " + root.attr.tipe + " -> " + str(root.attr.val) + "\n")
+    else:
+        print(tabulacion, root.token.lexema)
+        output.write(tabulacion + root.token.lexema + "\n")
+    i = 0
+    try:
+        while root.branch[i] is not None:
+            printBranch(root.branch[i], tabulacion + "    ")
+            i += 1
+    except:
+        pass
+
+
 def semantico():
     global symbolsTable, errores
     try:
         # Para tener una salida en txt sin necesidad del IDE
         output = open("Hashtable.txt", "w+")
+        tree_output = open("Gramatical_Tree.txt", "w+")
 
         # Para leer desde binario:
-        # with open("tree.bin", 'rb') as f:
-        #     t = pickle.load(f)
+        with open("tree.bin", 'rb') as f:
+            t = pickle.load(f)
 
         # Para leer desde argumento, leo el archivo serializado que viene en los argumentos,
         # se deserealiza y se iguala a la variable 't' para continuar con el analisis semantico:
-        with open(sys.argv[1], 'rb') as f:
-            t = pickle.load(f)
+        # with open(sys.argv[1], 'rb') as f:
+        #     t = pickle.load(f)
 
-        node_secuence(t, 0)
+        t1 = node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
         printHashtable(output, errores, symbolsTable)  # Errores y tabla en Hashtable.txt
+        printGramaticalTree(t1, tree_output)
         output.close()
+        tree_output.close()
     except Exception as e:
         # print("Exception at semantico(): ", e)
         pass

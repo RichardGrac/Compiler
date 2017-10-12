@@ -53,9 +53,9 @@ class Kind(Enum):
 
 class Attr:
     def __init__(self):
-        self.tipe = ""
-        self.val = 0.0
-        self.name = ""
+        self.tipe = None
+        self.val = None
+        self.name = None
 
 
 class TreeNode:
