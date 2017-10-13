@@ -84,8 +84,8 @@ def validate_consts(token):
     if (token.tipo == "TKN_NUM") | (token.tipo == "TKN_ID"):
         if (token.lexema.__contains__(".")) & (primitivo == "int"):
             # print("Possible loss of precision at line", str(token.linea))
-            return int(float(token.lexema))
-            # return "error"
+            # return int(float(token.lexema))
+            return "error"
         elif primitivo == "int":
             return int(token.lexema)
 
@@ -106,12 +106,12 @@ def is_type_correct(t, deep):
             return True
         elif get_primitive(t, deep) == "real":
             # perdida de precisión
-            return True
+            return False
         else:
             return False
     elif primitivo == "real":
         if get_primitive(t, deep) == "int":
-            return False
+            return True
         elif get_primitive(t, deep) == "real":
             # perdida de precisión
             return True
@@ -120,10 +120,11 @@ def is_type_correct(t, deep):
     elif primitivo == "boolean":
         pass
 
-    if get_primitive(t, deep) == primitivo:
-        return True
-    else:
-        return False
+    # if get_primitive(t, deep) == primitivo:
+    #     return True
+    # else:
+    #     return False
+    return True
 
 
 def assign_val_and_tipe(t, val, tipe):
@@ -245,7 +246,6 @@ def isLogicSecondOrder(token):
 
 def check_booleans(t, deep):
     # Error: (Si 1 existe y es booleano) & (si 2 existe y es diferente de boolean):
-    # excepto si ese TKN_NUMERO es un '1' o un '0'
     if t.branch[0].token.lexema in symbolsTable:
         primitive1 = get_primitive(t.branch[0], deep)
         if primitive1 == "boolean":
@@ -286,18 +286,22 @@ def validate_boolean_expresion(t, deep):
     if isLogicSecondOrder(token):
 
         # No se puede comparar un booleano con un id o un numero, excepto si ese numero es 0 o 1, verificamos:
-        if check_booleans(t, deep) is "error":
-            # print("Gramatical error, incorrect use of the boolean expression at line", str(t.token.linea))
-            errores.append("Gramatical error, incorrect use of the boolean expression at line " + str(t.token.linea))
-            return "error"
+        # if check_booleans(t, deep) is "error":
+        #     # print("Gramatical error, incorrect use of the boolean expression at line", str(t.token.linea))
+        #     errores.append("Gramatical error, incorrect use of the boolean expression at line " + str(t.token.linea))
+        #     return "error"
 
         # Seteamos primitivos para poder hacer la comparación booleana
-        if t.branch[0].token.tipo != "TKN_NUM":
-            primitivo = get_primitive(t.branch[0], deep)
+        # if t.branch[0].token.tipo != "TKN_NUM":
+        #     primitivo = get_primitive(t.branch[0], deep)
+        # if primitivo is None:
+        #     primitivo = "boolean"
         val1 = validate_exp_tree(t.branch[0], deep)
 
-        if t.branch[1].token.tipo != "TKN_NUM":
-            primitivo = get_primitive(t.branch[1], deep)
+        # if t.branch[1].token.tipo != "TKN_NUM":
+        #     primitivo = get_primitive(t.branch[1], deep)
+        # if primitivo is None:
+        #     primitivo = "boolean"
         val2 = validate_exp_tree(t.branch[1], deep)
         if (val1 is not "error") & (val2 is not "error"):
             if token.lexema == "<":
@@ -396,6 +400,7 @@ def update_symbolsTable(t, val, msg):
 
 
 def pre_validate_boolean_expression(t, deep):
+    global primitivo
     primitivo = "real"
     val = validate_boolean_expresion(t, deep)
     if val == "error":
