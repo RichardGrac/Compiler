@@ -152,7 +152,6 @@ def validate_exp_tree(t, deep):
 
         # else:
         val1 = validate_exp_tree(t.branch[0], deep)
-        t.branch[0].attr.val = val1
         assign_val_and_tipe(t.branch[0], val1, None)
         val2 = validate_exp_tree(t.branch[1], deep)
         assign_val_and_tipe(t.branch[1], val2, None)
@@ -362,8 +361,16 @@ def validate_cout_expression(t, deep):
     val = ""
     if isLogicSecondOrder(token):
         val = validate_boolean_expresion(t, deep)
+        if val == "error":
+            pass
+        elif val:
+            val = 1
+        else:
+            val = 0
+        assign_val_and_tipe(t, val, "boolean")
     else:
         val = validate_exp_tree(t, deep)
+        assign_val_and_tipe(t, val, "boolean")
 
     if val is not "error":
         # print("cout expression := ", val)
@@ -455,9 +462,12 @@ def node_secuence(t, deep):
                             update_symbolsTable(t.branch[0], val, 1)
                     else:
                         # print("Gramatical error, incorrect assignment at line", str(t.branch[1].token.linea))
+                        assign_val_and_tipe(t, val, primitivo)
                         errores.append("Gramatical error, incorrect assignment at line " +
                                        str(t.branch[1].token.linea))
             else:
+                assign_val_and_tipe(t, "error", "None")
+                assign_val_and_tipe(t.branch[0], "error", "None")
                 pass
 
 
@@ -573,13 +583,13 @@ def semantico():
         tree_output = open("Gramatical_Tree.txt", "w+")
 
         # Para leer desde binario:
-        with open("tree.bin", 'rb') as f:
-            t = pickle.load(f)
+        # with open("tree.bin", 'rb') as f:
+        #     t = pickle.load(f)
 
         # Para leer desde argumento, leo el archivo serializado que viene en los argumentos,
         # se deserealiza y se iguala a la variable 't' para continuar con el analisis semantico:
-        # with open(sys.argv[1], 'rb') as f:
-        #     t = pickle.load(f)
+        with open(sys.argv[1], 'rb') as f:
+            t = pickle.load(f)
 
         t1 = node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
@@ -588,7 +598,7 @@ def semantico():
         output.close()
         tree_output.close()
     except Exception as e:
-        # print("Exception at semantico(): ", e)
+        print("Exception at semantico(): ", e)
         pass
 
 
