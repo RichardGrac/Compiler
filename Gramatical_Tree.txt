@@ -4,25 +4,23 @@ main
        y     -> int -> 0
        z     -> int -> 0
    real
-       x     -> real -> 0.0
        a     -> real -> 0.0
        b     -> real -> 0.0
-       c     -> real -> 0.0
        c     -> real -> 0.0
    :=     -> real -> 5.0
        a     -> real -> 5.00
        5
-   :=     -> int -> error
-       x     -> int -> 0
-       5.0
-   :=     -> int -> error
-       y     -> int -> 0
-       +     -> int -> error
-           +     -> int -> error
-               +     -> int -> error
-                   +     -> int -> error
+   :=     -> int -> 5
+       x     -> int -> 5
+       5
+   :=     -> int -> 9
+       y     -> int -> 9
+       +     -> int -> 9
+           +     -> int -> 6
+               +     -> int -> 4
+                   +     -> int -> 3
                        1
-                       2.0
+                       2
                    1
                2
            3
@@ -82,9 +80,9 @@ main
            *     -> int -> 60
                15
                4
-   :=     -> int -> error
-       y     -> int -> -2
-       14.54
+   :=     -> int -> 14
+       y     -> int -> 14
+       14
    :=     -> real -> 59.5
        a     -> real -> 59.50
        -     -> real -> 59.5
@@ -137,10 +135,10 @@ main
            2
            a     -> real -> 515.00
    then
-       :=     -> int -> error
-           y     -> int -> -2
-           +     -> int -> error
-               a     -> real -> error
+       :=     -> int -> 67
+           y     -> int -> 67
+           +     -> int -> 67
+               z     -> int -> 64
                3
    else
        if
@@ -155,19 +153,10 @@ main
            :=     -> real -> 5.0
                b     -> real -> 5.00
                5.0
-           :=     -> None -> error
-               d     -> None -> error
-               +
-                   +
-                       a
-                       b
-                   *
-                       c
-                       5
-       :=     -> int -> -1
-           y     -> int -> -1
-           +     -> int -> -1
-               y     -> int -> -2
+       :=     -> int -> 68
+           y     -> int -> 68
+           +     -> int -> 68
+               y     -> int -> 67
                1
    :=     -> real -> 516.0
        a     -> real -> 516.00
@@ -175,12 +164,12 @@ main
            a     -> real -> 515.0
            1
    repeat
-       :=     -> int -> 1
-           y     -> int -> 1
-           +     -> int -> 1
-               *     -> int -> 0
-                   +     -> int -> 0
-                       y     -> int -> -1
+       :=     -> int -> 139
+           y     -> int -> 139
+           +     -> int -> 139
+               *     -> int -> 138
+                   +     -> int -> 69
+                       y     -> int -> 68
                        1
                    2
                1
@@ -202,11 +191,11 @@ main
                    1
    until
        ==     -> boolean -> 0
-           y     -> int -> 1
+           y     -> int -> 139
            5
    while
        ==     -> boolean -> 0
-           y     -> int -> 1
+           y     -> int -> 139
            0
        cin
            x     -> int -> 8

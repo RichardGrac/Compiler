@@ -1,27 +1,13 @@
-from TreeNode import *
 import pickle
-import sys
 
-
-# Se necesita de guardar la variables y la profundidad, así como el Nodo con sus atributos por lo que
-# haré una hashtable para la VARIABLE-PROFUNDIDAD y otro con la VARIABLE-SIMBOLO
-# Tabla de simbolos
-class Symbol:
-    pass
-
-    def __init__(self, name=None, deep=None, line=[], val=None, dtype=None, node=None):
-        self.name = name
-        self.deep = deep
-        self.lines = line
-        self.val = val
-        self.dtype = dtype
-        self.Node = node
-
+from Hashtable import *
+from TreeNode import *
 
 errores = []  # guadará los errores para al final imprimirlos/guardarlos
 primitivo = None  # "boolean", "int", "real"
 deepTable = {}  # Contenedor de VARIABLE-PROFUNDIDAD
-symbolsTable = {}  # Contenedor de VARIABLE-SIMBOLO
+symbolsTable = {}  # Contenedor de VARIABLES/SIMBOLOS
+num_registro = 0   # Para la tabla de simbolos
 
 
 def kill_instance_variables(deep):
@@ -205,7 +191,7 @@ def validate_exp_tree(t, deep):
 
 # Es llamada por StmtKind.DeclK. Se llama a sí misma si son varias declaraciones de variables a un tipo
 def make_variable(t, deep):
-    global primitivo
+    global primitivo, num_registro
     if t is None:
         return
     token = t.token
@@ -220,7 +206,8 @@ def make_variable(t, deep):
         if primitivo == "real":
             val = 0.0
         # Adición de una tupla/simbolo a la tabla Hash de simbolos
-        symbolsTable[token.lexema] = Symbol(token.lexema, deep, [token.linea], val, primitivo, t)
+        symbolsTable[token.lexema] = Symbol(token.lexema, num_registro, [token.linea], val, primitivo, t)
+        num_registro += 1
         deepTable[token.lexema] = deep
         # print(t.attr.tipe, token.lexema)
 
@@ -580,6 +567,20 @@ def printSibling(root, tabulacion, output):
         pass
 
 
+# Serializamos el árbol gramátical (.bin):
+def save_gramatical_tree(t1):
+    pass
+    with open('gramatical_tree.bin', 'wb') as f:
+        pickle.dump(t1, f)
+
+# Serializamos la tabla de simbolos (.bin):
+def save_hashtable():
+    global symbolsTable
+    pass
+    with open('hashtable.bin', 'wb') as f:
+        pickle.dump(symbolsTable, f)
+
+
 def semantico():
     global symbolsTable, errores
     try:
@@ -588,18 +589,20 @@ def semantico():
         tree_output = open("Gramatical_Tree.txt", "w+")
 
         # Para leer desde binario:
-        # with open("tree.bin", 'rb') as f:
-        #     t = pickle.load(f)
+        with open("tree.bin", 'rb') as f:
+            t = pickle.load(f)
 
         # Para leer desde argumento, leo el archivo serializado que viene en los argumentos,
         # se deserealiza y se iguala a la variable 't' para continuar con el analisis semantico:
-        with open(sys.argv[1], 'rb') as f:
-            t = pickle.load(f)
+        # with open(sys.argv[1], 'rb') as f:
+        #     t = pickle.load(f)
 
         t1 = node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
         printHashtable(output, errores, symbolsTable)  # Errores y tabla en Hashtable.txt
         printGramaticalTree(t1, tree_output)
+        save_gramatical_tree(t1)
+        save_hashtable()
         output.close()
         tree_output.close()
     except Exception as e:

@@ -9,11 +9,11 @@ token = None  # Token actual
 contador = 0  # Para recorrer los tokens
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-filepath = sys.argv[1]
-output = open(filepath, "r")
+# filepath = sys.argv[1]
+# output = open(filepath, "r")
 
 # Para leer desde txt:
-# output = open("Tokens.txt", "r")
+output = open("Tokens.txt", "r")
 
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
