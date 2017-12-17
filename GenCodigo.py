@@ -3,6 +3,7 @@ import pickle
 output = open("code.tm", "w+")
 mp = 0  # Memory Pointer
 ac = 0  # Acumulator
+pc = 0  # Program Counter
 TraceCode = 1
 
 # Número de instrucción actúal
@@ -71,6 +72,45 @@ def emitSkip(howMany):
         highEmitLoc = emitLoc
     return i
     # ./emitSkip
+
+# Se utiliza para establecer la localidad de la instrucción actual a una localidad anterior
+# para ajuste.
+def emitBackup(loc):
+    global highEmitLoc
+    if loc > highEmitLoc:
+        emitComment("BUG in emitBackup")
+        emitLoc = loc
+    # ./emitBackup
+
+# Se emplea para devolver la localidad de la instrucción actual al valor antes de una
+# llamada a emitBackup
+def emitRestore():
+    global emitLoc, highEmitLoc
+    emitLoc = highEmitLoc
+    # ./emitRestore
+
+# El procedimiento emitRM_Abs convierte una referencia absoluta en una referencia relativa
+# a la PC al emitir una instrucción MT de registro en memoria.
+# op = the opcode
+# r = target register
+# a = the absolute location in memory
+# c = a comment to be printed if TraceCode is 1
+def emitRM_Abs(op, r, a, c):
+    global output, pc, highEmitLoc, emitLoc
+    output.write(emitLoc, ":  ", op, "  ", r, ",", (a-(emitLoc+1)), ",", pc)
+    output.write("\n")
+    emitLoc += 1
+    if highEmitLoc < emitLoc:
+        highEmitLoc = emitLoc
+# Regresa una dirección de código absoluta en una dirección relativa al pc al restar la
+# localidad de instrucción actual más 1 (que es lo que será el pc durante la ejecución)
+# desde el parámetro de localidad pasado, y utilizando el pc como el registro fuente.
+# Por lo general será solo usada con una instrucción de salto condicional, como JEQ, o
+# para generar un saldo incondicional empleando LDA y el pc como registro objetivo.
+    # ./emitRM_Abs
+
+
+
 
 # | ------------------------------ FUNCIÓN PRINCIPAL -------------------------------------|
 # | Si hemos llegado hasta este punto, es porque el Código Fuente ya está                 |
