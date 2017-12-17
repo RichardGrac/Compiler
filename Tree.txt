@@ -1,12 +1,28 @@
 main
    int
        x
+       y
+   cin
+       x
    :=
-       x
-       5
+       y
+       0
+   repeat
+       :=
+           x
+           -
+               x
+               1
+       :=
+           y
+           +
+               y
+               1
+   until
+       ==
+           x
+           0
    cout
        x
    cout
-       x
-   cout
-       10
+       y

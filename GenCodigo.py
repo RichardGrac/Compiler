@@ -8,7 +8,7 @@ pc = 7  # Program Counter
 mp = 6  # Memory Pointer. Apunta a la cima de la memoria (para almacenamientos temporales)
 gp = 5  # Global Pointer. Apunta a lo más bajo de la memoria (para almacenamiento de variables)
 ac = 0  # Acumulador
-ac1 = 0  # Segundo Acumulador
+ac1 = 1  # Segundo Acumulador
 
 # Habilitado/Deshabilitado para emisión de comentarios (se emitirán por default)
 TraceCode = 1
@@ -34,7 +34,7 @@ hashtable = None
 # Imprime un comentario
 def emitComment(comment):
     global output
-    # output.write("* " + comment + "\n")
+    output.write("* " + comment + "\n")
 
 
 # Imprime instrucciones de 'Solo Registro'
@@ -95,7 +95,7 @@ def emitSkip(howMany):
 # Se utiliza para establecer la localidad de la instrucción actual a una localidad anterior
 # para ajuste.
 def emitBackup(loc):
-    global highEmitLoc
+    global highEmitLoc, emitLoc
     if loc > highEmitLoc:
         emitComment("BUG in emitBackup")
         emitLoc = loc
@@ -118,7 +118,7 @@ def emitRestore():
 # c = a comment to be printed if TraceCode is 1
 def emitRM_Abs(op, r, a, c):
     global output, pc, highEmitLoc, emitLoc
-    output.write(emitLoc + ":  " + op + "  " + r + "," + (a - (emitLoc + 1)) + "," + pc)
+    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(a - (emitLoc + 1)) + "," + str(pc))
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -141,6 +141,8 @@ def st_lookup(lookup_var):
 # ----------------------------------- GENERACIÓN DE CODIGO INTERMEDIO --------------------------------------------
 # Genera el codigo de un nodo de Sentencia
 def genStmt(tree):
+    global pc, mp, gp, ac, ac1, TraceCode, emitLoc, highEmitLoc, tmpOffset
+    sibling = 0
     pass
     if tree.kind == StmtKind.IfK:
         if TraceCode == 1:
@@ -155,20 +157,23 @@ def genStmt(tree):
         # Recursividad de la parte del 'then'
         cGen(p2)
         savedLoc2 = emitSkip(1)
-        emitSkip("if: jump to else belongs here")
+        emitComment("if: jump to else belongs here")
         currentLoc = emitSkip(0)
         emitBackup(savedLoc1)
         emitRM_Abs("JEQ", ac, currentLoc, "if: jmp to else")
         emitRestore()
         # Recursividad de la parte del 'else'
         try:  # Puede no tener el else
-            p3 = tree.sibling[1].branch[0]  # La parte falsacGen(p3)
+            p3 = tree.sibling[1].branch[0]  # La parte falsa
+            cGen(p3)
             currentLoc = emitSkip(0)
             emitBackup(savedLoc2)
             emitRM_Abs("LDA", pc, currentLoc, "jmp to end")
+            emitRestore()
+            sibling = 2  # Retornamos el sibling[2] para cuando en cGen tengamos que posicionarnos en el Nodo siguiente
         except Exception as e:
             print("Exception in IfK: ", e)
-            pass
+            sibling = 1  # Si cayó en el except, es porque no hubo parte 'else'. Mandamos '1' para posicionarnos después
         if TraceCode == 1:
             emitComment("<- if")
 
@@ -179,7 +184,7 @@ def genStmt(tree):
         cGen(tree.branch[1])  # Evaluamos la Exp
         # Ahora guardamos el valor
         loc = st_lookup(tree.branch[0].token.lexema)  # Buscamos su locación dentro de la tabla de simbolos
-        emitRM("ST", ac, loc, gp, "assig: store value")
+        emitRM("ST", ac, loc, gp, "assign: store value")
         if TraceCode == 1:
             emitComment("<- Assign")
 
@@ -191,9 +196,33 @@ def genStmt(tree):
         # Lo mostramos ahora
         emitRO("OUT", ac, 0, 0, "write ac")
 
+    elif tree.kind == StmtKind.RepeatK:
+        if TraceCode == 1:
+            emitComment("-> Repeat")
+            p1 = tree.branch[0]
+            p2 = tree.sibling[0].branch[0]
+            savedLoc1 = emitSkip(0)
+            emitComment("repeat: jump after body comes back here")
+            # Generamos código para el Cuerpo
+            cGen(p1)
+            # Generamos código para la ver si ya se cumplió la condición
+            cGen(p2)
+            emitRM_Abs("JEQ", ac, savedLoc1, "repeat: jmp back to body")
+            sibling = 1
+        if TraceCode == 1:
+            emitComment("<- Repeat")
+
+    elif tree.kind == StmtKind.CinK:
+        emitRO("IN", ac, 0, 0, "read integer value")
+        loc = st_lookup(tree.branch[0].token.lexema)
+        emitRM("ST", ac, loc, gp, "read: store value")
+
+    return sibling
+
 
 # Genera el codigo de un nodo de Expresión
 def genExp(tree):
+    global pc, mp, gp, ac, ac1, TraceCode, emitLoc, highEmitLoc, tmpOffset
     pass
     if tree.kind == ExpKind.ConstK:
         if TraceCode == 1:
@@ -211,6 +240,52 @@ def genExp(tree):
         if TraceCode == 1:
             emitComment("<- Id")
 
+    elif tree.kind == ExpKind.OpK:
+        if TraceCode == 1:
+            emitComment("-> Op")
+        p1 = tree.branch[0]
+        p2 = tree.branch[1]
+        # Generación de código para el argumento izquierdo
+        cGen(p1)
+        # Generación de código para hacer push al operando izquierdo
+        emitRM("ST", ac, tmpOffset, mp, "op: push left")
+        tmpOffset -= 1
+        # Generación de código para el operando derecho
+        cGen(p2)
+        # Ahora cargamos al operando izquierdo
+        tmpOffset += 1
+        emitRM("LD", ac1, tmpOffset, mp, "op: load left")
+
+        if tree.token.tipo == "TKN_ADD":
+            emitRO("ADD", ac, ac1, ac, "op +")
+
+        elif tree.token.tipo == "TKN_MINUS":
+            emitRO("SUB", ac, ac1, ac, "op -")
+
+        elif tree.token.tipo == "TKN_MULTI":
+            emitRO("MUL", ac, ac1, ac, "op *")
+
+        elif tree.token.tipo == "TKN_DIV":
+            emitRO("DIV", ac, ac1, ac, "op /")
+
+        elif tree.token.tipo == "TKN_LESS":
+            emitRO("SUB", ac, ac1, ac, "op <")
+            emitRM("JLT", ac, 2, pc, "br if true")
+            emitRM("LDC", ac, 0, ac, "false case")
+            emitRM("LDA", pc, 1, pc, "unconditional jmp")
+            emitRM("LDC", ac, 1, ac, "true case")
+
+        elif tree.token.tipo == "TKN_EQUAL":
+            emitRO("SUB", ac, ac1, ac, "op ==")
+            emitRM("JEQ", ac, 2, pc, "br if true")
+            emitRM("LDC", ac, 0, ac, "false case")
+            emitRM("LDA", pc, 1, pc, "unconditional jmp")
+            emitRM("LDC", ac, 1, ac, "true case")
+        else:
+            emitComment("BUG: Unknown operator")
+        if TraceCode == 1:
+            emitComment("<- Op")
+
 
 # cGen genera recursivamente el codigo dado el árbol
 def cGen(tree):
@@ -218,13 +293,14 @@ def cGen(tree):
     if tree is None:
         return
     try:
+        sibling = 0
         if tree.nodeKind == NodeKind.StmtK:
-            genStmt(tree)
+            sibling = genStmt(tree)
         elif tree.nodeKind == NodeKind.ExpK:
             genExp(tree)
-        cGen(tree.sibling[0])
+        cGen(tree.sibling[sibling])
     except Exception as e:
-        # print("Exception in cGen: ", e)  # Siempre que no haya sibling ocurrirá, es normal.
+        print("Exception in cGen: ", e)  # Siempre que no haya sibling ocurrirá, es normal.
         pass
 
 
