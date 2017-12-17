@@ -219,6 +219,15 @@ def genStmt(tree):
 
     return sibling
 
+# Genera el código necesario para los saltos condicionales/incondicionales dependiendo el tipo de op. booleano
+def is_boolean_operator(instruction, message):
+    global  ac, ac1, pc
+    emitRO("SUB", ac, ac1, ac, message)
+    emitRM(instruction, ac, 2, pc, "br if true")
+    emitRM("LDC", ac, 0, ac, "false case")
+    emitRM("LDA", pc, 1, pc, "unconditional jmp")
+    emitRM("LDC", ac, 1, ac, "true case")
+
 
 # Genera el codigo de un nodo de Expresión
 def genExp(tree):
@@ -269,18 +278,23 @@ def genExp(tree):
             emitRO("DIV", ac, ac1, ac, "op /")
 
         elif tree.token.tipo == "TKN_LESS":
-            emitRO("SUB", ac, ac1, ac, "op <")
-            emitRM("JLT", ac, 2, pc, "br if true")
-            emitRM("LDC", ac, 0, ac, "false case")
-            emitRM("LDA", pc, 1, pc, "unconditional jmp")
-            emitRM("LDC", ac, 1, ac, "true case")
+            is_boolean_operator("JLT", "op <")
+
+        elif tree.token.tipo == "TKN_ELESS":
+            is_boolean_operator("JLE", "op <=")
 
         elif tree.token.tipo == "TKN_EQUAL":
-            emitRO("SUB", ac, ac1, ac, "op ==")
-            emitRM("JEQ", ac, 2, pc, "br if true")
-            emitRM("LDC", ac, 0, ac, "false case")
-            emitRM("LDA", pc, 1, pc, "unconditional jmp")
-            emitRM("LDC", ac, 1, ac, "true case")
+            is_boolean_operator("JEQ", "op ==")
+
+        elif tree.token.tipo == "TKN_MORE":
+            is_boolean_operator("JGT", "op >")
+
+        elif tree.token.tipo == "TKN_EMORE":
+            is_boolean_operator("JGE", "op >=")
+
+        elif tree.token.tipo == "TKN_NEQUAL":
+            is_boolean_operator("JNE", "op !=")
+
         else:
             emitComment("BUG: Unknown operator")
         if TraceCode == 1:
