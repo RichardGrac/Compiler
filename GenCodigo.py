@@ -1,9 +1,16 @@
 import pickle
 
-output = open("code.tm", "w+")
-mp = 0  # Memory Pointer
-ac = 0  # Acumulator
-pc = 0  # Program Counter
+from TreeNode import *
+from Hashtable import *
+
+output = open("code.TM", "w+")
+pc = 7  # Program Counter
+mp = 6  # Memory Pointer. Apunta a la cima de la memoria (para almacenamientos temporales)
+gp = 5  # Global Pointer. Apunta a lo más bajo de la memoria (para almacenamiento de variables)
+ac = 0  # Acumulador
+ac1 = 0  # Segundo Acumulador
+
+# Habilitado/Deshabilitado para emisión de comentarios (se emitirán por default)
 TraceCode = 1
 
 # Número de instrucción actúal
@@ -13,13 +20,22 @@ emitLoc = 0
 # emitirBackup y emitRestore
 highEmitLoc = 0
 
+# tmpOffset es la compensación de memoria para los temporales. Se decrementa cada vez que
+# se almacena un temp, y se incrementa cuando se carga de nuevo.
+tmpOffset = 0
+
+# Tabla de simbolos
+hashtable = None
+
+
 # |------------------------------------------------------------------------|
 # |         FUNCIONES NECESARIAS PARA LA EMISIÓN DE INSTRUCCIONES          |
 # |------------------------------------------------------------------------|
 # Imprime un comentario
 def emitComment(comment):
     global output
-    output.write("* ", comment, "\n")
+    # output.write("* " + comment + "\n")
+
 
 # Imprime instrucciones de 'Solo Registro'
 # TM instruction
@@ -30,12 +46,13 @@ def emitComment(comment):
 # c = a comment to be printed if TraceCode is 1
 def emitRO(op, r, s, t, c):
     global output, highEmitLoc, emitLoc
-    output.write(emitLoc, ":  ", op, "  ", r, ",", s, ",", t)
+    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t))
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
         highEmitLoc = emitLoc
     # ./emitRO
+
 
 # Imprime instrucciones de 'Memoria de Registro'
 # TM instruction
@@ -46,12 +63,13 @@ def emitRO(op, r, s, t, c):
 #  * c = a comment to be printed if TraceCode is 1
 def emitRM(op, r, d, s, c):
     global output, highEmitLoc, emitLoc
-    output.write(emitLoc, ":  ", op, "  ", r, ",", d, "(", s, ")")
+    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ")")
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
         highEmitLoc = emitLoc
     # ./emitRM
+
 
 # |------------------------------------------------------------------------|
 # | LAS SIG. 3 INSTRUCCIONES SE EMPLEAN PARA SALTOS DE GENERACIÓN Y AJUSTE |
@@ -73,6 +91,7 @@ def emitSkip(howMany):
     return i
     # ./emitSkip
 
+
 # Se utiliza para establecer la localidad de la instrucción actual a una localidad anterior
 # para ajuste.
 def emitBackup(loc):
@@ -82,12 +101,14 @@ def emitBackup(loc):
         emitLoc = loc
     # ./emitBackup
 
+
 # Se emplea para devolver la localidad de la instrucción actual al valor antes de una
 # llamada a emitBackup
 def emitRestore():
     global emitLoc, highEmitLoc
     emitLoc = highEmitLoc
     # ./emitRestore
+
 
 # El procedimiento emitRM_Abs convierte una referencia absoluta en una referencia relativa
 # a la PC al emitir una instrucción MT de registro en memoria.
@@ -97,7 +118,7 @@ def emitRestore():
 # c = a comment to be printed if TraceCode is 1
 def emitRM_Abs(op, r, a, c):
     global output, pc, highEmitLoc, emitLoc
-    output.write(emitLoc, ":  ", op, "  ", r, ",", (a-(emitLoc+1)), ",", pc)
+    output.write(emitLoc + ":  " + op + "  " + r + "," + (a - (emitLoc + 1)) + "," + pc)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -107,9 +128,104 @@ def emitRM_Abs(op, r, a, c):
 # desde el parámetro de localidad pasado, y utilizando el pc como el registro fuente.
 # Por lo general será solo usada con una instrucción de salto condicional, como JEQ, o
 # para generar un saldo incondicional empleando LDA y el pc como registro objetivo.
-    # ./emitRM_Abs
+# ./emitRM_Abs
+
+def st_lookup(lookup_var):
+    global hashtable
+    if lookup_var in hashtable:
+        symbol = hashtable[lookup_var]
+        return symbol.deep
+    else:
+        return -1
+
+# ----------------------------------- GENERACIÓN DE CODIGO INTERMEDIO --------------------------------------------
+# Genera el codigo de un nodo de Sentencia
+def genStmt(tree):
+    pass
+    if tree.kind == StmtKind.IfK:
+        if TraceCode == 1:
+            emitComment("-> if")
+        p1 = tree.branch[0]  # La expresión
+        p2 = tree.sibling[0].branch[0]  # La parte verdadera
+
+        # Generamos código para la expresión
+        cGen(p1)
+        savedLoc1 = emitSkip(1)
+        emitComment("if: jump to else belongs here")
+        # Recursividad de la parte del 'then'
+        cGen(p2)
+        savedLoc2 = emitSkip(1)
+        emitSkip("if: jump to else belongs here")
+        currentLoc = emitSkip(0)
+        emitBackup(savedLoc1)
+        emitRM_Abs("JEQ", ac, currentLoc, "if: jmp to else")
+        emitRestore()
+        # Recursividad de la parte del 'else'
+        try:  # Puede no tener el else
+            p3 = tree.sibling[1].branch[0]  # La parte falsacGen(p3)
+            currentLoc = emitSkip(0)
+            emitBackup(savedLoc2)
+            emitRM_Abs("LDA", pc, currentLoc, "jmp to end")
+        except Exception as e:
+            print("Exception in IfK: ", e)
+            pass
+        if TraceCode == 1:
+            emitComment("<- if")
+
+    elif tree.kind == StmtKind.AssignK:
+        if TraceCode == 1:
+            emitComment("-> Assign")
+        # Generamos código para rhs
+        cGen(tree.branch[1])  # Evaluamos la Exp
+        # Ahora guardamos el valor
+        loc = st_lookup(tree.branch[0].token.lexema)  # Buscamos su locación dentro de la tabla de simbolos
+        emitRM("ST", ac, loc, gp, "assig: store value")
+        if TraceCode == 1:
+            emitComment("<- Assign")
+
+    elif tree.kind == StmtKind.CoutK:
+        if TraceCode == 1:
+            emitComment("-> CoutK")
+        # Generamos código para la expresión a mostrar
+        cGen(tree.branch[0])  # El valor, id u operador padre.
+        # Lo mostramos ahora
+        emitRO("OUT", ac, 0, 0, "write ac")
 
 
+# Genera el codigo de un nodo de Expresión
+def genExp(tree):
+    pass
+    if tree.kind == ExpKind.ConstK:
+        if TraceCode == 1:
+            emitComment("-> Const")
+        # Generamos código para cargar una constante entera usando LDC
+        emitRM("LDC", ac, tree.token.lexema, 0, "load const")
+        if TraceCode == 1:
+            emitComment("<- Const")
+
+    elif tree.kind == ExpKind.IdK:
+        if TraceCode == 1:
+            emitComment("-> Id")
+        loc = st_lookup(tree.token.lexema)
+        emitRM("LD", ac, loc, gp, "load id value")
+        if TraceCode == 1:
+            emitComment("<- Id")
+
+
+# cGen genera recursivamente el codigo dado el árbol
+def cGen(tree):
+    pass
+    if tree is None:
+        return
+    try:
+        if tree.nodeKind == NodeKind.StmtK:
+            genStmt(tree)
+        elif tree.nodeKind == NodeKind.ExpK:
+            genExp(tree)
+        cGen(tree.sibling[0])
+    except Exception as e:
+        # print("Exception in cGen: ", e)  # Siempre que no haya sibling ocurrirá, es normal.
+        pass
 
 
 # | ------------------------------ FUNCIÓN PRINCIPAL -------------------------------------|
@@ -119,7 +235,7 @@ def emitRM_Abs(op, r, a, c):
 # | (quien se encargará de ensamblar nuestro código)                                      |
 # | --------------------------------------------------------------------------------------|
 def codeGen():
-    global output, mp, ac
+    global output, mp, ac, hashtable
     try:
         # Obtenemos el árbol gramátical de la fase anterior:
         with open("gramatical_tree.bin", 'br') as f:
@@ -136,7 +252,13 @@ def codeGen():
     # Generamos un preludio estandar
     emitComment("Preludio estandar:")
     emitRM("LD", mp, 0, ac, "load maxaddress from location 0")
-
+    emitRM("ST", ac, 0, ac, "clear location 0")
+    emitComment("End of standard prelude.")
+    # Generamos el código para el programa Tiny
+    cGen(tree.branch[0])
+    # Terminamos
+    emitComment("End of execution.")
+    emitRO("HALT", 0, 0, 0, "")
     output.close()
 
 
