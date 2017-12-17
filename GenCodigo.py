@@ -11,7 +11,7 @@ ac = 0  # Acumulador
 ac1 = 1  # Segundo Acumulador
 
 # Habilitado/Deshabilitado para emisión de comentarios (se emitirán por default)
-TraceCode = 1
+TraceCode = 0
 
 # Número de instrucción actúal
 emitLoc = 0
@@ -33,8 +33,9 @@ hashtable = None
 # |------------------------------------------------------------------------|
 # Imprime un comentario
 def emitComment(comment):
-    global output
-    output.write("* " + comment + "\n")
+    global output, TraceCode
+    if TraceCode == 1:
+        output.write("* " + comment + "\n")
 
 
 # Imprime instrucciones de 'Solo Registro'
@@ -45,8 +46,10 @@ def emitComment(comment):
 # t = 2nd source register
 # c = a comment to be printed if TraceCode is 1
 def emitRO(op, r, s, t, c):
-    global output, highEmitLoc, emitLoc
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t))
+    global output, highEmitLoc, emitLoc, TraceCode
+    if TraceCode == 0:
+        c = ""  # No se emitirá comentario
+    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t) + " " + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -62,8 +65,10 @@ def emitRO(op, r, s, t, c):
 #  * s = the base register
 #  * c = a comment to be printed if TraceCode is 1
 def emitRM(op, r, d, s, c):
-    global output, highEmitLoc, emitLoc
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ")")
+    global output, highEmitLoc, emitLoc, TraceCode
+    if TraceCode == 0:
+        c = ""  # No se emitirá comentario
+    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ") " + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -117,8 +122,10 @@ def emitRestore():
 # a = the absolute location in memory
 # c = a comment to be printed if TraceCode is 1
 def emitRM_Abs(op, r, a, c):
-    global output, pc, highEmitLoc, emitLoc
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(a - (emitLoc + 1)) + "," + str(pc))
+    global output, pc, highEmitLoc, emitLoc, TraceCode
+    if TraceCode == 0:
+        c = ""  # No se emitirá comentario
+    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(a - (emitLoc + 1)) + "(" + str(pc) + ") " + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -195,20 +202,22 @@ def genStmt(tree):
         cGen(tree.branch[0])  # El valor, id u operador padre.
         # Lo mostramos ahora
         emitRO("OUT", ac, 0, 0, "write ac")
+        if TraceCode == 1:
+            emitComment("<- CoutK")
 
     elif tree.kind == StmtKind.RepeatK:
         if TraceCode == 1:
             emitComment("-> Repeat")
-            p1 = tree.branch[0]
-            p2 = tree.sibling[0].branch[0]
-            savedLoc1 = emitSkip(0)
-            emitComment("repeat: jump after body comes back here")
-            # Generamos código para el Cuerpo
-            cGen(p1)
-            # Generamos código para la ver si ya se cumplió la condición
-            cGen(p2)
-            emitRM_Abs("JEQ", ac, savedLoc1, "repeat: jmp back to body")
-            sibling = 1
+        p1 = tree.branch[0]
+        p2 = tree.sibling[0].branch[0]
+        savedLoc1 = emitSkip(0)
+        emitComment("repeat: jump after body comes back here")
+        # Generamos código para el Cuerpo
+        cGen(p1)
+        # Generamos código para ver si ya se cumplió la condición
+        cGen(p2)
+        emitRM_Abs("JEQ", ac, savedLoc1, "repeat: jmp back to body")
+        sibling = 1
         if TraceCode == 1:
             emitComment("<- Repeat")
 
@@ -221,12 +230,21 @@ def genStmt(tree):
 
 # Genera el código necesario para los saltos condicionales/incondicionales dependiendo el tipo de op. booleano
 def is_boolean_operator(instruction, message):
-    global  ac, ac1, pc
+    global ac, ac1, pc
     emitRO("SUB", ac, ac1, ac, message)
     emitRM(instruction, ac, 2, pc, "br if true")
     emitRM("LDC", ac, 0, ac, "false case")
     emitRM("LDA", pc, 1, pc, "unconditional jmp")
     emitRM("LDC", ac, 1, ac, "true case")
+
+
+# Debido a que la Tiny Machine no ensambla valores flotantes, tendrémos que trabajar con Enteros :(
+def get_integer(lexema):
+    pass
+    try:
+        return int(float(lexema))
+    except Exception as e:
+        print("Exception casting a value (def get_integer())")
 
 
 # Genera el codigo de un nodo de Expresión
@@ -237,7 +255,8 @@ def genExp(tree):
         if TraceCode == 1:
             emitComment("-> Const")
         # Generamos código para cargar una constante entera usando LDC
-        emitRM("LDC", ac, tree.token.lexema, 0, "load const")
+        integer = get_integer(tree.token.lexema)
+        emitRM("LDC", ac, str(integer), 0, "load const")
         if TraceCode == 1:
             emitComment("<- Const")
 
@@ -314,7 +333,7 @@ def cGen(tree):
             genExp(tree)
         cGen(tree.sibling[sibling])
     except Exception as e:
-        print("Exception in cGen: ", e)  # Siempre que no haya sibling ocurrirá, es normal.
+        # print("Exception in cGen: ", e)  # Siempre que no haya sibling ocurrirá, es normal.
         pass
 
 

@@ -6,7 +6,7 @@ main
     repeat{         // Repite
       x := x-1;
       y := y+1;
-    }until(x>=5);      //Hasta que x sea mayor o igual de 5
-    cout x;
+      cout x;
+    }until(x<=5);      //Hasta que x sea mayor o igual de 5
     cout y;
 }
