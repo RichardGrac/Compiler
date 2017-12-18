@@ -1,4 +1,5 @@
 import pickle
+import sys
 
 from TreeNode import *
 from Hashtable import *
@@ -57,7 +58,7 @@ def emitRO(op, r, s, t, c):
     emitLoc += 1
     if highEmitLoc < emitLoc:
         highEmitLoc = emitLoc
-    # ./emitRO
+        # ./emitRO
 
 
 # Imprime instrucciones de 'Memoria de Registro'
@@ -76,7 +77,7 @@ def emitRM(op, r, d, s, c):
     emitLoc += 1
     if highEmitLoc < emitLoc:
         highEmitLoc = emitLoc
-    # ./emitRM
+        # ./emitRM
 
 
 # |------------------------------------------------------------------------|
@@ -107,7 +108,7 @@ def emitBackup(loc):
     if loc > highEmitLoc:
         emitComment("BUG in emitBackup")
         emitLoc = loc
-    # ./emitBackup
+        # ./emitBackup
 
 
 # Se emplea para devolver la localidad de la instrucción actual al valor antes de una
@@ -409,11 +410,19 @@ def codeGen():
     global output, mp, ac, hashtable
     try:
         # Obtenemos el árbol gramátical de la fase anterior:
-        with open("gramatical_tree.bin", 'br') as f:
+        # with open("gramatical_tree.bin", 'br') as f:
+        #     tree = pickle.load(f)
+
+        # Obtenemos el árbol gramátical de la fase anterior como argumento mandado por el IDE:
+        with open(sys.argv[1], 'br') as f:
             tree = pickle.load(f)
 
         # Obtenemos la tabla de Simbolos de la fase anterior:
-        with open("hashtable.bin", 'br') as f:
+        # with open("hashtable.bin", 'br') as f:
+        #     hashtable = pickle.load(f)
+
+        # Obtenemos la tabla de Simbolos de la fase anterior como argumento mandado por el IDE:
+        with open(sys.argv[2], 'br') as f:
             hashtable = pickle.load(f)
     except Exception as e:
         print("Exception at GenCodigo(): ", e)

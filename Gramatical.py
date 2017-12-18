@@ -1,4 +1,5 @@
 import pickle
+import sys
 
 from Hashtable import *
 from TreeNode import *
@@ -589,13 +590,13 @@ def semantico():
         tree_output = open("Gramatical_Tree.txt", "w+")
 
         # Para leer desde binario:
-        with open("tree.bin", 'rb') as f:
-            t = pickle.load(f)
+        # with open("tree.bin", 'rb') as f:
+        #     t = pickle.load(f)
 
         # Para leer desde argumento, leo el archivo serializado que viene en los argumentos,
         # se deserealiza y se iguala a la variable 't' para continuar con el analisis semantico:
-        # with open(sys.argv[1], 'rb') as f:
-        #     t = pickle.load(f)
+        with open(sys.argv[1], 'rb') as f:
+            t = pickle.load(f)
 
         t1 = node_secuence(t, 0)
         printErrors(errores)  # Errores en consola
