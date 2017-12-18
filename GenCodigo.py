@@ -11,7 +11,7 @@ ac = 0  # Acumulador
 ac1 = 1  # Segundo Acumulador
 
 # Habilitado/Deshabilitado para emisión de comentarios (se emitirán por default)
-TraceCode = 0
+TraceCode = 1
 
 # Número de instrucción actúal
 emitLoc = 0
@@ -183,6 +183,43 @@ def genStmt(tree):
             sibling = 1  # Si cayó en el except, es porque no hubo parte 'else'. Mandamos '1' para posicionarnos después
         if TraceCode == 1:
             emitComment("<- if")
+
+    # Este caso se hizo de manera más manual que otros (excepto if)
+    elif tree.kind == StmtKind.WhileK:
+        if TraceCode == 1:
+            emitComment("-> While")
+
+        p1 = tree.branch[0]  # Expresión
+        p2 = tree.branch[1]  # Cuerpo
+        savedLoc0 = emitSkip(0)  # Antes de generar la expresión
+        # Generamos la expresión
+        cGen(p1)  # Gen de Código de expresión
+
+        # --------- Aquí debería ir la condicional de salto. Por lo que lo dejaremos para despues, guardando su ------
+        savedLoc1 = emitSkip(0)  # ubicación actual (para poder volver. Contiene el actúal emitLoc)
+
+
+        emitLoc += 1  # Brincamos una posición para continuar emitiendo código (reservando la posición anterior)
+        # Emitimos código del Body
+        cGen(p2)
+        savedLoc2 = emitSkip(0)  # Guardamos ubicación actual (Posterior a la generación del Body y el salto incond.)
+
+        # Hacemos salto hacía antes de cargar la evaluación
+        emitRM_Abs("LDA", pc, savedLoc0, "jmp to while evaluation")
+        savedLoc2 += 1
+
+        # -------------------- Volvemos atrás para CREAR la evaluación --------------------------------------------
+        emitLoc = savedLoc1
+        # Ya estamos posicionados atrás, evaluamos:
+        emitRM_Abs("JEQ", ac, savedLoc2, "while: if true continue")  # salta a savedLoc2 si Verdadero (o sea, continua)
+        # ------------------------------ Fin del pasado  ----------------------------------------------------------
+
+        # Nos posicionamos a donde deberíamos de ir
+        emitLoc = savedLoc1 + (savedLoc2 - savedLoc1)
+
+        if TraceCode == 1:
+            emitComment("<- While")
+
 
     elif tree.kind == StmtKind.AssignK:
         if TraceCode == 1:

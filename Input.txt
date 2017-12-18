@@ -1,12 +1,10 @@
 main
 {
-    int x, y;
+    int x;
     cin x;
-    y := 0;
-    repeat{         // Repite
-      x := x-1;
-      y := y+1;
-      cout x;
-    }until(x<=5);      //Hasta que x sea mayor o igual de 5
-    cout y;
+    while(x >= 5){
+        x--;
+        cout x;
+    }
+    cout x;
 }
