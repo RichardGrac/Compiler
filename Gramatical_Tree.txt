@@ -1,28 +1,8 @@
 main
-   int
-       x     -> int -> 0
-       y     -> int -> 0
-   cin
-       x     -> int -> 0
-   :=     -> int -> 0
-       y     -> int -> 0
-       0
-   repeat
-       :=     -> int -> -1
-           x     -> int -> -1
-           -     -> int -> -1
-               x     -> int -> 0
-               1
-       :=     -> int -> 1
-           y     -> int -> 1
-           +     -> int -> 1
-               y     -> int -> 0
-               1
-   until
-       ==     -> boolean -> 0
-           x     -> int -> -1
-           0
+   real
+       a     -> real -> 0.0
+   :=     -> real -> 10.5
+       a     -> real -> 10.50
+       10.5
    cout
-       x     -> boolean -> -1.0
-   cout
-       y     -> boolean -> 1.0
+       a     -> boolean -> 10.5

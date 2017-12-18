@@ -304,7 +304,8 @@ def is_boolean_operator(instruction, message):
 def get_integer(lexema):
     pass
     try:
-        return int(float(lexema))
+        # return int(float(lexema))
+        return lexema
     except Exception as e:
         print("Exception casting a value (def get_integer())")
 
