@@ -2,9 +2,12 @@ main
 {
     int x;
     cin x;
-    while(x >= 5){
-        x--;
+    if(x<5)then{ // Si no se cumple, saltamos a X
         cout x;
+        // Hacemos salto a Y
+    }else{ // X
+        cout 10;
     }
-    cout x;
+    //Y
+    cout 8;
 }

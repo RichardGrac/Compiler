@@ -27,6 +27,9 @@ tmpOffset = 0
 # Tabla de simbolos
 hashtable = None
 
+# La var 'sibling' será usada como variable controladora de la navegación entre Nodos. No siempre es el Siguiente nodo
+# es el que hay que verificar. Ejm: if-else
+
 
 # |------------------------------------------------------------------------|
 # |         FUNCIONES NECESARIAS PARA LA EMISIÓN DE INSTRUCCIONES          |
@@ -159,28 +162,50 @@ def genStmt(tree):
 
         # Generamos código para la expresión
         cGen(p1)
-        savedLoc1 = emitSkip(1)
-        emitComment("if: jump to else belongs here")
-        # Recursividad de la parte del 'then'
+
+        # ----- Aquí debería ir la condicional de salto. Por lo que la generaremos despues, así como en el While -----
+        savedLoc1 = emitSkip(0)
+        emitLoc += 1  # Reservamos su espacio de la condicional
+
+        # Generamos codigo de la parte Verdadera
         cGen(p2)
-        savedLoc2 = emitSkip(1)
-        emitComment("if: jump to else belongs here")
-        currentLoc = emitSkip(0)
-        emitBackup(savedLoc1)
-        emitRM_Abs("JEQ", ac, currentLoc, "if: jmp to else")
-        emitRestore()
-        # Recursividad de la parte del 'else'
+
+        # Locación despúes de generar el código de la parte Verdadera (es decir, locación de else)
+        savedLoc2 = emitSkip(0)
+
+        # -------------------- Volvemos atrás para CREAR la evaluación --------------------------------------------
+        emitLoc = savedLoc1
+        # Ya nos posicionamos atrás en el código, ahora hacemos la evaluación.
+        emitRM_Abs("JEQ", ac, (savedLoc2+1), "if: jmp to else")  # Salta a savedLoc2 si se cumple
+        # <- Es savedLoc2+1 porque en savedLoc2 hay un salto incondicional (el que hace que termine el if)
+        # ------------------------------ Fin del pasado  ----------------------------------------------------------
+        # Nos posicionamos a donde deberíamos de ir
+        emitLoc = savedLoc1 + (savedLoc2 - savedLoc1)
+
+        # Hacemos un salto incondiciconal despues del else cuando terminamos el if (o si no hay else, igual se hace)
+        savedLoc3 = emitSkip(0)
+        emitLoc += 1  # Reservamos el espacio para ese salto incondicional
+
+        # Generamos código de la parte 'else'
         try:  # Puede no tener el else
-            p3 = tree.sibling[1].branch[0]  # La parte falsa
-            cGen(p3)
-            currentLoc = emitSkip(0)
-            emitBackup(savedLoc2)
-            emitRM_Abs("LDA", pc, currentLoc, "jmp to end")
-            emitRestore()
-            sibling = 2  # Retornamos el sibling[2] para cuando en cGen tengamos que posicionarnos en el Nodo siguiente
+            if tree.sibling[1].token.tipo == "TKN_ELSE":
+                p3 = tree.sibling[1].branch[0]  # La parte falsa
+                cGen(p3)
+                sibling = 2  # Retornamos el sibling[2] para cuando en cGen tengamos que posicionarnos en el Nodo siguiente
+            else:
+                sibling = 1
         except Exception as e:
             print("Exception in IfK: ", e)
             sibling = 1  # Si cayó en el except, es porque no hubo parte 'else'. Mandamos '1' para posicionarnos después
+
+        # Guardamos posición actual:
+        savedLoc4 = emitSkip(0)
+        # Nos posicionamos antes del else para poder hacer el salto a savedLoc4
+        emitLoc = savedLoc3
+        emitRM_Abs("LDA", pc, savedLoc4, "jmp after else (if exists)")
+        # Nos reposicionamos donde deberiamos ir
+        emitLoc = savedLoc3 + (savedLoc4 - savedLoc3)
+
         if TraceCode == 1:
             emitComment("<- if")
 
