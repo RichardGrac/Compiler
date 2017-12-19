@@ -4,7 +4,7 @@ import sys
 from TreeNode import *
 from Hashtable import *
 
-output = open("code.TM", "w+")
+output = open("code.RJI", "w+")
 pc = 7  # Program Counter
 mp = 6  # Memory Pointer. Apunta a la cima de la memoria (para almacenamientos temporales)
 gp = 5  # Global Pointer. Apunta a lo más bajo de la memoria (para almacenamiento de variables)
@@ -12,7 +12,7 @@ ac = 0  # Acumulador
 ac1 = 1  # Segundo Acumulador
 
 # Habilitado/Deshabilitado para emisión de comentarios (se emitirán por default)
-TraceCode = 1
+TraceCode = 0
 
 # Número de instrucción actúal
 emitLoc = 0
@@ -53,7 +53,8 @@ def emitRO(op, r, s, t, c):
     global output, highEmitLoc, emitLoc, TraceCode
     if TraceCode == 0:
         c = ""  # No se emitirá comentario
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t) + " " + c)
+    # output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t) + " " + c)
+    output.write(str(emitLoc) + " " + op + " " + str(r) + " " + str(s) + " " + str(t) + "" + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -72,7 +73,8 @@ def emitRM(op, r, d, s, c):
     global output, highEmitLoc, emitLoc, TraceCode
     if TraceCode == 0:
         c = ""  # No se emitirá comentario
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ") " + c)
+    # output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ") " + c)
+    output.write(str(emitLoc) + " " + op + " " + str(r) + " " + str(d) + " " + str(s) + "" + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -129,7 +131,8 @@ def emitRM_Abs(op, r, a, c):
     global output, pc, highEmitLoc, emitLoc, TraceCode
     if TraceCode == 0:
         c = ""  # No se emitirá comentario
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(a - (emitLoc + 1)) + "(" + str(pc) + ") " + c)
+    # output.write(str(emitLoc) + ":  " + op + "  " + str(r) + " " + str(a - (emitLoc + 1)) + "(" + str(pc) + ") " + c)
+    output.write(str(emitLoc) + " " + op + " " + str(r) + " " + str(a - (emitLoc + 1)) + " " + str(pc) + "" + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -305,7 +308,8 @@ def is_boolean_operator(instruction, message):
 def get_integer(lexema):
     pass
     try:
-        return int(float(lexema))
+        # return int(float(lexema))
+        return lexema
     except Exception as e:
         print("Exception casting a value (def get_integer())")
 
