@@ -1,19 +1,45 @@
+# ┌----------- GRAMÁTICA EBNF PARA NUESTRO LENGUAJE  ------------┐
+# |    Programa -> main { lista-declaración lista-sentencia }    |
+# |    lista-declaración -> { declaración ; }                    |
+# |    declaración -> tipo lista-variables                       |
+# |    tipo -> int | real | boolean                              |
+# |    lista-variables -> id [ , id ]                            |
+# |    lista-sentencia -> { sentencia }                          |
+# |    sentencia -> sent-if | sent-while | sent-repeat | sent-cin | sent-cout | sentencia | asignación
+# |    sent-if -> if ( expresión ) then bloque [ else bloque ]   |
+# |    sent-while -> while ( expresión ) bloque                  |
+# |    sent-repeat -> repeat bloque until ( expresión ) ;        |
+# |    sent-cin -> cin identificador ;                           |
+# |    sent-cout -> cout expresión ;                             |
+# |    bloque -> { lista-sentencia }                             |
+# |    asignación -> identificador := expresión ;                |
+# |    expresión -> exp [ relación exp ]                         |
+# |    relación -> <= | < | > | >= | == | !=                     |
+# |    exp -> term { opsuma term }                               |
+# |    opsuma -> + | -                                           |
+# |    termino -> factor { opmult factor }                       |
+# |    opmult -> * | /                                           |
+# |    factor -> ( expresión ) | numero | identificador          |
+# └--------------------------------------------------------------┘
+#
+# Los "Primeros" y "Siguientes" están dados al final de este archivo. Para recuperación de Errores.
+
+
 from TreeNode import *
 import sys
 import pickle
 
-# ------------------------------------- INICIO DE ANALIZADOR SINTÁCTICO -----------------------------
 
 tokens = []  # Todos los tokens salidos del Léxico
 token = None  # Token actual
 contador = 0  # Para recorrer los tokens
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-# filepath = sys.argv[1]
-# output = open(filepath, "r")
+filepath = sys.argv[1]
+output = open(filepath, "r")
 
 # Para leer desde txt:
-output = open("Tokens.txt", "r")
+# output = open("Tokens.txt", "r")
 
 for line in output:
     linea, columna, tipo, lexema = line.split(" ")
@@ -742,3 +768,52 @@ if __name__ == '__main__':
 
     # NOTA: para que muestre el árbol en el IDE habrá que descomentar las lineas referentes al -print- dentro de
     # printTree(), printSibling y printBranch
+
+
+# -------------------------- PRIMEROS  --------------------------
+#     primero(programa) { main }                               |
+#     primero(lista-declaración) { int, real, boolean }        |
+#     primero(declaración) { int, real, boolean }              |
+#     primero(tipo) { int, real, boolean }                     |
+#     primero(lista-variables) { identificador }               |
+#     primero(lista-sentencia) { if, while, repeat, cin, cout, {, identificador }
+#     primero(sentencia) { if, while, repeat, cin, cout, {, identificador }
+#     primero(sent-if) { if }                                  |
+#     primero(sent-while) { while }                            |
+#     primero(sent-repeat) { repeat }                          |
+#     primero(sent-cin) { cin }                                |
+#     primero(sent-cout) { cout }                              |
+#     primero(bloque) { { }                                    |
+#     primero(asignación) { identificador }                    |
+#     primero(expresión) { (, numero, identificador }          |
+#     primero(relación) { <=, <, >, >=, ==, != }               |
+#     primero(exp) { (, numero, identificador }                |
+#     primero(opsuma) { +, - }                                 |
+#     primero(termino) { (, numero, identificador }            |
+#     primero(opmult) { *, / }                                 |
+#     primero(factor) { (, numero, identificador }             |
+# ---------------------------------------------------------------
+
+# -------------------------- SIGUIENTES  ----------------------------
+#     siguiente(programa) {  }                                     |
+#     siguiente(lista-declaración) { if, while, repeat, cin, cout, {, identificador }
+#     siguiente(declaración) { ; }                                 |
+#     siguiente(tipo) { identificador }                            |
+#     siguiente(lista-variables) { ; }                             |
+#     siguiente(lista-sentencia) { } }                             |
+#     siguiente(sentencia) { } }                                   |
+#     siguiente(sent-if) { } }                                     |
+#     siguiente(sent-while) { } }                                  |
+#     siguiente(sent-repeat) { } }                                 |
+#     siguiente(sent-cin) { } }                                    |
+#     siguiente(sent-cout) { } }                                   |
+#     siguiente(bloque) { until, else, } }                         |
+#     siguiente(asignación) { } }                                  |
+#     siguiente(expresión) { ;, ) }                                |
+#     siguiente(relación) { (, numero, identificador }             |
+#     siguiente(exp) { <=, <, >, >=, ==, !=, ;, ) }                |
+#     siguiente(opsuma) { (, numero, identificador }               |
+#     siguiente(termino) { +, -, <=, <, >, >=, ==, !=, ;, ) }      |
+#     siguiente(opmult) { (, numero, identificador }               |
+#     siguiente(factor) { *, /, +, -, <=, <, >, >=, ==, !=, ;, ) } |
+# -------------------------------------------------------------------

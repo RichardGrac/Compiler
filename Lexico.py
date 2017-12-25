@@ -1,3 +1,16 @@
+# ┌----------------------------- ANÁLISIS LÉXICO --- -----------------------------┐
+# | Convenciones léxicas implementando autómatas de estado finito.                |
+# | - PALABRAS RESERVADAS:                                                        |
+# |            * main               * repeat, until                               |
+# |            * if, then, else     * cin, cout                                   |
+# |            * while                                                            |
+# |            * int, real, boolean                                               |
+# | - SÍMBOLOS ESPECIALES: + - * / < <= > >= == != := ( ) { } // /**/ ++ -- , ;   |
+# | - IDENTIFICADORES: Como en cualquier otro lenguaje.                           |
+# └-------------------------------------------------------------------------------┘ 
+# Algunas palabras reservadas, simbolos especiales han sido desactivados debido a que
+# no fueron usados(as) en implementaciones posteriores (do, end, TKN_PERCENT no se usó)
+
 import sys
 from enum import Enum
 
@@ -60,11 +73,11 @@ def decreasing():
 
 # ----------------------------------- INICIO DE ANALISIS LEXICO ------------------------------
 # Para leer desde txt:
-archivo = open("Input.txt")
+# archivo = open("Input.txt")
 
 # Leer el archivo de entrada como argumento (En conjunto con IDE(Java)):
-# fileLocation = sys.argv[1]
-# archivo = open(fileLocation)
+fileLocation = sys.argv[1]
+archivo = open(fileLocation)
 
 linea = archivo.read()
 linea += "\n"
@@ -212,9 +225,9 @@ while contador < len(linea):
     elif estado == STATE.SUBSTRACTION:
         if caracter == '-':
             appendWithOne("TKN_LLESS")
-    #     # elif (caracter >= '0') & (caracter <= '9'):  # Para numeros con signo -3
-    #     #     estado = STATE.IN_NUMERAL
-    #     #     decreasing()
+            #     # elif (caracter >= '0') & (caracter <= '9'):  # Para numeros con signo -3
+            #     #     estado = STATE.IN_NUMERAL
+            #     #     decreasing()
         else:
             append("TKN_MINUS")
     elif estado == STATE.IN_LESS:
