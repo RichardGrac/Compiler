@@ -1,9 +1,18 @@
+# ┌----------------------------------------- GENERACIÓN DE CÓDIGO ------------------------------------------------┐
+# | Dado el árbol gramátical (no necesario, pudo haber sido el sintáctico) generarémos el código intermedio PARA  |
+# | LA MAQUINA TINY (TM), el cúal hará "la simulación" de código ensamblador, con lo cúal terminaremos nuestro    |
+# | terminaremos nuestro compilador.                                                                              |
+# | Este archivo es prácticamente la traducción de CODE.C, CODE.H, CGEN.C y CGEN.H de "Tiny Compiler by Louden    |
+# | con adición del repeat-until y cambios de->ahora:        read->cin, write->cout, repeat->while                |
+# └---------------------------------------------------------------------------------------------------------------┘
+
 import pickle
+import sys
 
 from TreeNode import *
 from Hashtable import *
 
-output = open("code.TM", "w+")
+output = open("code.RJI", "w+")
 pc = 7  # Program Counter
 mp = 6  # Memory Pointer. Apunta a la cima de la memoria (para almacenamientos temporales)
 gp = 5  # Global Pointer. Apunta a lo más bajo de la memoria (para almacenamiento de variables)
@@ -11,7 +20,7 @@ ac = 0  # Acumulador
 ac1 = 1  # Segundo Acumulador
 
 # Habilitado/Deshabilitado para emisión de comentarios (se emitirán por default)
-TraceCode = 1
+TraceCode = 0
 
 # Número de instrucción actúal
 emitLoc = 0
@@ -52,12 +61,13 @@ def emitRO(op, r, s, t, c):
     global output, highEmitLoc, emitLoc, TraceCode
     if TraceCode == 0:
         c = ""  # No se emitirá comentario
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t) + " " + c)
+    # output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(s) + "," + str(t) + " " + c)
+    output.write(str(emitLoc) + " " + op + " " + str(r) + " " + str(s) + " " + str(t) + "" + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
         highEmitLoc = emitLoc
-    # ./emitRO
+        # ./emitRO
 
 
 # Imprime instrucciones de 'Memoria de Registro'
@@ -71,12 +81,13 @@ def emitRM(op, r, d, s, c):
     global output, highEmitLoc, emitLoc, TraceCode
     if TraceCode == 0:
         c = ""  # No se emitirá comentario
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ") " + c)
+    # output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(d) + "(" + str(s) + ") " + c)
+    output.write(str(emitLoc) + " " + op + " " + str(r) + " " + str(d) + " " + str(s) + "" + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
         highEmitLoc = emitLoc
-    # ./emitRM
+        # ./emitRM
 
 
 # |------------------------------------------------------------------------|
@@ -107,7 +118,7 @@ def emitBackup(loc):
     if loc > highEmitLoc:
         emitComment("BUG in emitBackup")
         emitLoc = loc
-    # ./emitBackup
+        # ./emitBackup
 
 
 # Se emplea para devolver la localidad de la instrucción actual al valor antes de una
@@ -128,7 +139,8 @@ def emitRM_Abs(op, r, a, c):
     global output, pc, highEmitLoc, emitLoc, TraceCode
     if TraceCode == 0:
         c = ""  # No se emitirá comentario
-    output.write(str(emitLoc) + ":  " + op + "  " + str(r) + "," + str(a - (emitLoc + 1)) + "(" + str(pc) + ") " + c)
+    # output.write(str(emitLoc) + ":  " + op + "  " + str(r) + " " + str(a - (emitLoc + 1)) + "(" + str(pc) + ") " + c)
+    output.write(str(emitLoc) + " " + op + " " + str(r) + " " + str(a - (emitLoc + 1)) + " " + str(pc) + "" + c)
     output.write("\n")
     emitLoc += 1
     if highEmitLoc < emitLoc:
@@ -304,7 +316,8 @@ def is_boolean_operator(instruction, message):
 def get_integer(lexema):
     pass
     try:
-        return int(float(lexema))
+        # return int(float(lexema))
+        return lexema
     except Exception as e:
         print("Exception casting a value (def get_integer())")
 
@@ -409,11 +422,19 @@ def codeGen():
     global output, mp, ac, hashtable
     try:
         # Obtenemos el árbol gramátical de la fase anterior:
-        with open("gramatical_tree.bin", 'br') as f:
+        # with open("gramatical_tree.bin", 'br') as f:
+        #     tree = pickle.load(f)
+
+        # Obtenemos el árbol gramátical de la fase anterior como argumento mandado por el IDE:
+        with open(sys.argv[1], 'br') as f:
             tree = pickle.load(f)
 
         # Obtenemos la tabla de Simbolos de la fase anterior:
-        with open("hashtable.bin", 'br') as f:
+        # with open("hashtable.bin", 'br') as f:
+        #     hashtable = pickle.load(f)
+
+        # Obtenemos la tabla de Simbolos de la fase anterior como argumento mandado por el IDE:
+        with open(sys.argv[2], 'br') as f:
             hashtable = pickle.load(f)
     except Exception as e:
         print("Exception at GenCodigo(): ", e)

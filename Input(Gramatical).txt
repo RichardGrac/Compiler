@@ -1,3 +1,4 @@
+//Codigo prueba que se utilizó para la tercera etapa del Compilador (Análisis Gramátical)
 main
 {
 int x,y,z;
