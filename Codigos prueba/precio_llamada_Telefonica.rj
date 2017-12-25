@@ -1,0 +1,44 @@
+/* Programa que calcula el gasto por llamadas Internacionales, Nacionales
+ y locales (a partir de las 50 llamadas) */
+main{
+	int tipo, mins, no_llamadas, contador_locales;
+	real total;
+	//Leemos cada llamada y su cantidad de minutos
+	cin no_llamadas;
+	repeat{
+		cin tipo;
+		cin mins;
+		// Llamadas internacionales
+		if (tipo == 1)then{
+			if (mins <= 3){
+				total := total + mins * (7.59);			
+			}else{
+				total := total + 3 * (7.59);
+				mins := mins - 3;
+				total := total + mins * (3.03);
+			}
+		}else{ // Llamadas nacionales
+			if(tipo == 2)then{
+				if(mins <= 3)then{
+					total := total + mins * (1.20);
+				}else{
+					total := total + 3 * (1.20);
+					mins := mins - 3;
+					total := total + mins * (0.48);
+				}			
+				
+			}else{
+				if(tipo == 3)then{
+					contador_locales++;
+					if(contador_locales > 50)then{
+						total := total + (contador_locales * (0.60));
+					}
+				}
+			}
+		}
+		no_llamadas--;
+	}until(no_llamadas == 0);
+	cout total;
+	cout contador_locales;
+}
+

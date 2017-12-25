@@ -1,0 +1,22 @@
+/* Impuesto por país, dado un precio de articulo y dependiendo de su precio, 
+    a este se le aplicará un impuesto. */
+main{
+	real precio_art, impuesto;
+	cin precio_art;
+	if(precio_art > 20)then{
+		if(precio_art <= 40)then{
+			// Es mayor a 20 y menor a 40
+			impuesto := precio_art * 0.30;
+		}else{ 		// Es mayor a 40
+			if(precio_art >= 500)then{ 
+				impuesto := precio_art * 0.50;
+			}else{
+				impuesto := precio_art * 0.40;
+			}
+		}
+	}
+	real precio_final;
+	/* Calculamos e imprimimos el precio del producto ya con el impuesto incluído */
+	precio_final := precio_art + impuesto;
+	cout precio_final;
+}

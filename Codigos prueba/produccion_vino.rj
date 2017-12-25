@@ -1,0 +1,68 @@
+/* Programa de la producción de vino */
+main{
+	/* Leemos la cantidad N de anos para la producción de los 5 tipos
+	de vino */
+	int n;
+	cin n;
+
+	/* Tipos de vino */
+	real t1, t2, t3, t4, t5;
+
+	/* Totales producidos por c/tipo */
+	real total1, total2, total3, total4, total5;
+
+	/* Respaldará el ano y la cantidad de mayor cantidad del tipo 2 */
+	int anot2;
+	real cantt2;
+
+	/* Respaldará el ano en que no se produjo vino del tipo 3 */
+	int anot3;
+
+	int ano_actual;
+	while(n > 0){
+		/* Lectura del ano y sus cantidades de cada tipo */
+		cin ano_actual;
+		cin t1;
+		cin t2;
+		cin t3;
+		cin t4;
+		cin t5;
+
+		/* Para guardar el total de cada tipo a lo largo de los anos */
+		total1 := total1 + t1;
+		total2 := total2 + t2;
+		total3 := total3 + t3;
+		total4 := total4 + t4;
+		total5 := total5 + t5;
+
+		/* Total producido de vino por ano */
+		cout t1+t2+t3+t4+t5;
+
+		/* ano en que se produjo la mayor cantidad de vino del tipo 2*/
+		if(t2 > cantt2)then{
+			cantt2 := t2;
+			anot2 := ano_actual;
+		}
+
+		/* ano en el que no se produjo vino de tipo 3 */
+		if(t3 == 0)then{
+			anot3 := ano_actual;
+		}
+		n--;
+	}
+	/* Total producido de cada tipo de vino a lo largo de N anos */
+	cout total1;
+	cout total2;
+	cout total3;
+	cout total4;
+	cout total5;
+
+	/* Impresión año en que el tipo2 se produjo más (y la cantidad) */
+	cout cantt2;
+	cout anot2;
+
+	/* Impresión año en que la producción de t3=0 */
+	if(anot3 != 0)then{
+		cout anot3;	
+	}
+}

@@ -1,0 +1,7 @@
+/* Programa que calcula la temperatura en base al número de sonidos emitidos
+	por un grillo */
+main{
+	int num_sonidos;
+	cin num_sonidos;
+	cout num_sonidos/4+40;
+}

@@ -1,0 +1,15 @@
+/* Programa que calcula el promedio entre cinco calificaciones dadas */
+main{
+	int matricula;
+	real cal1,cal2,cal3,cal4,cal5;
+	/* Leemos la matricula y las cinco calificaciones */
+	cin matricula;
+	cin cal1;
+	cin cal2;
+	cin cal3;
+	cin cal4;
+	cin cal5;
+	/* Imprimimos matrícula y promedio del alumno */
+	cout matricula;
+	cout ((cal1+cal2+cal3+cal4+cal5)/5);
+}
