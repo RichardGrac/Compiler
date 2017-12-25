@@ -1,3 +1,10 @@
+# ┌----------------------------------------- TINY MACHINE By Louden ----------------------------------------------┐
+# | Trabajará con el código intermedio generado por GenCodigo.py como entráda (llamandose code.RJI).              |
+# | Es una adaptación del código "TM.C" By Louden a Python, con adición para que trabaje con números flotantes/   |
+# | reales.                                                                                                       |
+# | Al ejecutarse se trabajará directamente con el la consola en Python.                                          |
+# └---------------------------------------------------------------------------------------------------------------┘
+
 class OPCLASS:
     def __init__(self):
         self.opclRR=0

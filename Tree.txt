@@ -1,28 +1,11 @@
 main
    int
-       x
-       y
+       num_sonidos
    cin
-       x
-   :=
-       y
-       0
-   repeat
-       :=
-           x
-           -
-               x
-               1
-       :=
-           y
-           +
-               y
-               1
-   until
-       ==
-           x
-           0
+       num_sonidos
    cout
-       x
-   cout
-       y
+       +
+           /
+               num_sonidos
+               4
+           40

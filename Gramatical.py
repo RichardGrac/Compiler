@@ -1,3 +1,14 @@
+# ┌------------------------------------------ ANÁLISIS GRAMÁTICAL ------------------------------------------------┐
+# | Dado el árbol sintáctico, lo utilizaremos para hacer el análisis de tipos en las Declaraciones de variables   |
+# | junto con los identificadores que le sigan. También, Asignaciones correctas de enteros, reales y booleanos,   |
+# | así como de las expresiones resultantes de una operación.                                                     |
+# | Se creará una Hashtable (Tabla de simbolos) donde para cada variable creada se agregará un tipo Symbol (dada  |
+# | por Hashtable.py) a ésta, cada aparición de esa variable será registrado su número de linea y por el          |
+# | contrario, la aparición de una variable que no esté registrada será producto de un Error gramátical           |
+# | (var not defined)                                                                                             |
+# |                                                                                                               |
+# └---------------------------------------------------------------------------------------------------------------┘
+
 import pickle
 import sys
 
@@ -49,23 +60,6 @@ def get_primitive(t, deep):
         # print("Gramatical error, variable '" + t.token.lexema + "' is not defined at line " + str(t.token.linea))
 
 
-# def isLogicSemantic(token):
-#     if (token.tipo == "TKN_LESS") | (token.tipo == "TKN_ELESS"):
-#         return True
-#     elif (token.tipo == "TKN_EQUAL") | (token.tipo == "TKN_NEQUAL"):
-#         return True
-#     elif (token.tipo == "TKN_MORE") | (token.tipo == "TKN_EMORE"):
-#         return True
-#     else:
-#         return False
-
-
-# def is_operator_correct(tipo, token):
-#     if tipo == "boolean":
-#         return isLogicSemantic(token)
-#     else:
-#         return not isLogicSemantic(token)
-
 # Valida si el primitivo actual es igual al que se va a comparar/igualar
 def validate_consts(token):
     if (token.tipo == "TKN_NUM") | (token.tipo == "TKN_ID"):
@@ -107,10 +101,6 @@ def is_type_correct(t, deep):
     elif primitivo == "boolean":
         pass
 
-    # if get_primitive(t, deep) == primitivo:
-    #     return True
-    # else:
-    #     return False
     return True
 
 
@@ -133,12 +123,7 @@ def validate_exp_tree(t, deep):
     if t.kind == ExpKind.OpK:
         token = t.token
         assign_val_and_tipe(t, None, primitivo)
-        # primitivo = get_primitive(t, deep)
 
-        # if not is_operator_correct(primitivo, token):
-        #     print("The token", t.token.lexema, "doesn't corresponds to", primitivo)
-
-        # else:
         val1 = validate_exp_tree(t.branch[0], deep)
         assign_val_and_tipe(t.branch[0], val1, None)
         val2 = validate_exp_tree(t.branch[1], deep)
@@ -273,23 +258,7 @@ def validate_boolean_expresion(t, deep):
     token = t.token
     if isLogicSecondOrder(token):
 
-        # No se puede comparar un booleano con un id o un numero, excepto si ese numero es 0 o 1, verificamos:
-        # if check_booleans(t, deep) is "error":
-        #     # print("Gramatical error, incorrect use of the boolean expression at line", str(t.token.linea))
-        #     errores.append("Gramatical error, incorrect use of the boolean expression at line " + str(t.token.linea))
-        #     return "error"
-
-        # Seteamos primitivos para poder hacer la comparación booleana
-        # if t.branch[0].token.tipo != "TKN_NUM":
-        #     primitivo = get_primitive(t.branch[0], deep)
-        # if primitivo is None:
-        #     primitivo = "boolean"
         val1 = validate_exp_tree(t.branch[0], deep)
-
-        # if t.branch[1].token.tipo != "TKN_NUM":
-        #     primitivo = get_primitive(t.branch[1], deep)
-        # if primitivo is None:
-        #     primitivo = "boolean"
         val2 = validate_exp_tree(t.branch[1], deep)
         if (val1 is not "error") & (val2 is not "error"):
             if token.lexema == "<":

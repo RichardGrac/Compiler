@@ -1,3 +1,16 @@
+# ┌----------------------------- ANÁLISIS LÉXICO --- -----------------------------┐
+# | Convenciones léxicas implementando autómatas de estado finito.                |
+# | - PALABRAS RESERVADAS:                                                        |
+# |            * main               * repeat, until                               |
+# |            * if, then, else     * cin, cout                                   |
+# |            * while                                                            |
+# |            * int, real, boolean                                               |
+# | - SÍMBOLOS ESPECIALES: + - * / < <= > >= == != := ( ) { } // /**/ ++ -- , ;   |
+# | - IDENTIFICADORES: Como en cualquier otro lenguaje.                           |
+# └-------------------------------------------------------------------------------┘ 
+# Algunas palabras reservadas, simbolos especiales han sido desactivados debido a que
+# no fueron usados(as) en implementaciones posteriores (do, end, TKN_PERCENT no se usó)
+
 import sys
 from enum import Enum
 

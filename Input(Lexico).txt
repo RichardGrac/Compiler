@@ -1,3 +1,4 @@
+//Codigo prueba que se utilizó para la primera etapa del Compilador (Análisis Léxico)
 312312.id
 int vector, su&mas, res@tas,suma1,suma2,25ert;
 main if(while)if+34.34.34.34.34-34+++---

@@ -1,3 +1,11 @@
+# ┌----------------------------------------- GENERACIÓN DE CÓDIGO ------------------------------------------------┐
+# | Dado el árbol gramátical (no necesario, pudo haber sido el sintáctico) generarémos el código intermedio PARA  |
+# | LA MAQUINA TINY (TM), el cúal hará "la simulación" de código ensamblador, con lo cúal terminaremos nuestro    |
+# | terminaremos nuestro compilador.                                                                              |
+# | Este archivo es prácticamente la traducción de CODE.C, CODE.H, CGEN.C y CGEN.H de "Tiny Compiler by Louden    |
+# | con adición del repeat-until y cambios de->ahora:        read->cin, write->cout, repeat->while                |
+# └---------------------------------------------------------------------------------------------------------------┘
+
 import pickle
 import sys
 
