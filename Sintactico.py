@@ -168,16 +168,17 @@ def stmt_sequence(synchset):
     t = statement(synchset)
     p = t
 
-    while (token.tipo != "TKN_RBRACE") & (token.tipo != "TKN_EOF"):
-        q = statement(synchset)
+    if not token.tipo in synchset:
+        while (token.tipo != "TKN_RBRACE") & (token.tipo != "TKN_EOF"):
+            q = statement(synchset)
 
-        if q is not None:
-            if t is None:
-                p = q
-                t = p
-            else:
-                p.sibling.append(q)
-                p = q
+            if q is not None:
+                if t is None:
+                    p = q
+                    t = p
+                else:
+                    p.sibling.append(q)
+                    p = q
     return t
 
 
